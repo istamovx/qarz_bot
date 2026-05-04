@@ -2,7 +2,7 @@ import os
 import asyncio
 import logging
 from html import escape
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
@@ -21,17 +21,43 @@ logging.basicConfig(
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Render da to'ldiriladi
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-PERSON_NAME, AMOUNT, DESCRIPTION = range(3)
+PERSON_NAME, AMOUNT, DESCRIPTION, DUE_DATE = range(4)
 
 def h(text: str) -> str:
     return escape(str(text))
 
 def fmt_amount(amount) -> str:
     return f"{int(amount):,}".replace(",", " ")
+
+def parse_date(text: str):
+    for fmt in ("%d.%m.%Y", "%d/%m/%Y", "%Y-%m-%d", "%d.%m.%y"):
+        try:
+            return datetime.strptime(text.strip(), fmt).date()
+        except ValueError:
+            continue
+    return None
+
+def due_label(due_date_str) -> str:
+    if not due_date_str:
+        return ""
+    try:
+        d = date.fromisoformat(due_date_str)
+        today = date.today()
+        diff = (d - today).days
+        if diff < 0:
+            return f" ⚠️ <b>Muddati o'tgan ({abs(diff)} kun)</b>"
+        elif diff == 0:
+            return " 🔴 <b>Bugun!</b>"
+        elif diff <= 3:
+            return f" 🟡 {d.strftime('%d.%m.%Y')} ({diff} kun qoldi)"
+        else:
+            return f" 📅 {d.strftime('%d.%m.%Y')}"
+    except Exception:
+        return ""
 
 # ─── Klaviatura ────────────────────────────────────────────────────────────────
 
@@ -96,17 +122,39 @@ async def get_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return AMOUNT
     context.user_data["amount"] = int(text)
-    await update.message.reply_text(
-        "Izoh (ixtiyoriy). O'tkazish uchun /skip yozing."
-    )
+    await update.message.reply_text("Izoh (ixtiyoriy). O'tkazish uchun /skip yozing.")
     return DESCRIPTION
 
 async def skip_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["description"] = ""
-    return await save_loan(update, context)
+    return await ask_due_date(update, context)
 
 async def get_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["description"] = update.message.text.strip()
+    return await ask_due_date(update, context)
+
+async def ask_due_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "📅 Qaytarish muddati? (masalan: <code>25.05.2026</code>)\n"
+        "O'tkazish uchun /skip yozing.",
+        parse_mode="HTML",
+    )
+    return DUE_DATE
+
+async def skip_due_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["due_date"] = None
+    return await save_loan(update, context)
+
+async def get_due_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    parsed = parse_date(update.message.text)
+    if not parsed:
+        await update.message.reply_text(
+            "Noto'g'ri format. Qayta kiriting (masalan: <code>25.05.2026</code>)\n"
+            "O'tkazish uchun /skip yozing.",
+            parse_mode="HTML",
+        )
+        return DUE_DATE
+    context.user_data["due_date"] = parsed.isoformat()
     return await save_loan(update, context)
 
 async def save_loan(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -117,6 +165,7 @@ async def save_loan(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "person_name": context.user_data["person_name"],
         "amount": context.user_data["amount"],
         "description": context.user_data.get("description", ""),
+        "due_date": context.user_data.get("due_date"),
         "is_paid": False,
     }
     supabase.table("loans").insert(data).execute()
@@ -124,12 +173,14 @@ async def save_loan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     emoji = "💸" if data["loan_type"] == "gave" else "🤝"
     action = "berdingiz" if data["loan_type"] == "gave" else "oldingiz"
     desc_line = h(data["description"]) if data["description"] else "—"
+    due_line = f"📅 Muddat: <b>{data['due_date']}</b>" if data["due_date"] else "📅 Muddat: belgilanmagan"
 
     await update.message.reply_text(
         f"{emoji} <b>Saqlandi!</b>\n\n"
         f"👤 Kim: <b>{h(data['person_name'])}</b>\n"
         f"💰 Miqdor: <b>{fmt_amount(data['amount'])} so'm</b>\n"
-        f"Izoh: {desc_line}\n\n"
+        f"Izoh: {desc_line}\n"
+        f"{due_line}\n\n"
         f"Qarz <b>{action}</b> deb qayd etildi.",
         reply_markup=main_menu(),
         parse_mode="HTML",
@@ -157,7 +208,7 @@ async def list_loans(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif filter_type == "list_took":
         q = q.eq("loan_type", "took")
 
-    rows = q.order("created_at", desc=False).execute().data
+    rows = q.order("due_date", desc=False, nullsfirst=False).order("created_at", desc=False).execute().data
 
     if not rows:
         label = {"list_gave": "qarzdorlar", "list_took": "qarzlarim", "list_all": "qarzlar"}[filter_type]
@@ -183,8 +234,8 @@ async def list_loans(update: Update, context: ContextTypes.DEFAULT_TYPE):
         arrow = "💸" if r["loan_type"] == "gave" else "🤝"
         amt = fmt_amount(r["amount"])
         desc = f" — {h(r['description'])}" if r["description"] else ""
-        date = r["created_at"][:10] if r.get("created_at") else ""
-        lines.append(f"{arrow} <b>{h(r['person_name'])}</b> | <code>{amt}</code> so'm{desc} ({date})")
+        deadline = due_label(r.get("due_date"))
+        lines.append(f"{arrow} <b>{h(r['person_name'])}</b> | <code>{amt}</code> so'm{desc}{deadline}")
         buttons.append([
             InlineKeyboardButton(
                 f"✅ To'landi: {r['person_name']} — {amt}",
@@ -248,8 +299,8 @@ async def history(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for r in rows:
         arrow = "💸" if r["loan_type"] == "gave" else "🤝"
         amt = fmt_amount(r["amount"])
-        date = r.get("paid_at", "")[:10]
-        lines.append(f"{arrow} {h(r['person_name'])} | <code>{amt}</code> so'm | {date}")
+        date_str = r.get("paid_at", "")[:10]
+        lines.append(f"{arrow} {h(r['person_name'])} | <code>{amt}</code> so'm | {date_str}")
 
     await update.message.reply_text("\n".join(lines), parse_mode="HTML", reply_markup=main_menu())
 
@@ -266,6 +317,10 @@ def build_app():
             DESCRIPTION: [
                 CommandHandler("skip", skip_description),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, get_description),
+            ],
+            DUE_DATE: [
+                CommandHandler("skip", skip_due_date),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, get_due_date),
             ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
