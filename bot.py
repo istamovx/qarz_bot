@@ -2,7 +2,7 @@ import os
 import asyncio
 import logging
 from html import escape
-from datetime import datetime
+from datetime import datetime, timezone
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
@@ -21,6 +21,7 @@ logging.basicConfig(
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Render da to'ldiriladi
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -216,7 +217,7 @@ async def mark_paid(update: Update, context: ContextTypes.DEFAULT_TYPE):
     loan = result.data
     supabase.table("loans").update({
         "is_paid": True,
-        "paid_at": datetime.utcnow().isoformat(),
+        "paid_at": datetime.now(timezone.utc).isoformat(),
     }).eq("id", loan_id).execute()
 
     amt = fmt_amount(loan["amount"])
@@ -254,7 +255,7 @@ async def history(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
-def main():
+def build_app():
     app = Application.builder().token(BOT_TOKEN).build()
 
     conv = ConversationHandler(
@@ -277,11 +278,25 @@ def main():
     app.add_handler(CallbackQueryHandler(menu, pattern="^menu$"))
     app.add_handler(CallbackQueryHandler(list_loans, pattern="^list_(gave|took|all)$"))
     app.add_handler(CallbackQueryHandler(mark_paid, pattern="^paid_"))
+    return app
 
-    print("Bot ishga tushdi...")
+def main():
+    app = build_app()
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+
+    if WEBHOOK_URL:
+        PORT = int(os.getenv("PORT", 8080))
+        print(f"Webhook rejimi: {WEBHOOK_URL}")
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=PORT,
+            webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}",
+            url_path=BOT_TOKEN,
+        )
+    else:
+        print("Polling rejimi (lokal)...")
+        app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
     main()
