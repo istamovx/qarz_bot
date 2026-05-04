@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Qarz Bot</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root {
+  --bg: #0d0d18;
+  --card: #16162a;
+  --card2: #1e1e38;
+  --border: rgba(255,255,255,0.07);
+  --purple: #7c5cbf;
+  --purple2: #a29bfe;
+  --accent: #6c5ce7;
+  --grad: linear-gradient(135deg, #6c5ce7 0%, #9b59b6 50%, #a29bfe 100%);
+  --green: #00cec9;
+  --red: #e17055;
+  --yellow: #fdcb6e;
+  --text: #f0f0f8;
+  --text2: #7878a0;
+  --radius: 18px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── Screens ── */
+#app{flex:1;overflow:hidden;position:relative}
+.screen{position:absolute;inset:0;overflow-y:auto;display:none;padding-bottom:72px;-webkit-overflow-scrolling:touch}
+.screen.active{display:block}
+
+/* ── Header ── */
+.header{background:var(--grad);padding:20px 20px 36px;position:relative;overflow:hidden}
+.header::after{content:'';position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.06);right:-50px;top:-80px;pointer-events:none}
+.header::before{content:'';position:absolute;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,0.04);left:-30px;bottom:-60px;pointer-events:none}
+.header-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.user-row{display:flex;align-items:center;gap:12px}
+.avatar{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,0.22);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;border:2px solid rgba(255,255,255,0.3);flex-shrink:0}
+.greeting{font-size:12px;opacity:.75;margin-bottom:2px}
+.username{font-size:16px;font-weight:700}
+.balance-wrap{text-align:center;margin-top:22px;position:relative;z-index:1}
+.bal-label{font-size:13px;opacity:.75;margin-bottom:6px}
+.bal-amount{font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+.bal-amount.neg{color:#ff9f9f}
+.bal-stats{display:flex;justify-content:center;gap:28px;margin-top:14px}
+.bal-stat{font-size:12px;opacity:.8;text-align:center}
+.bal-stat b{display:block;font-size:14px;font-weight:700;margin-top:2px;opacity:1}
+
+/* ── Quick actions ── */
+.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px;background:var(--bg);margin-top:-18px;border-radius:22px 22px 0 0;position:relative;z-index:2}
+.act-btn{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 4px;background:var(--card);border:1px solid var(--border);border-radius:16px;color:var(--text);font-size:11px;font-weight:600;cursor:pointer;transition:transform .1s,background .15s;user-select:none;width:100%}
+.act-btn:active{transform:scale(.94);background:var(--card2)}
+.act-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px}
+.act-icon.g{background:rgba(108,92,231,.18)}
+.act-icon.t{background:rgba(0,206,201,.15)}
+.act-icon.l{background:rgba(162,155,254,.15)}
+.act-icon.h{background:rgba(253,203,110,.15)}
+
+/* ── Section ── */
+.sec-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 8px}
+.sec-head h3{font-size:16px;font-weight:700}
+.sec-head a{font-size:13px;color:var(--purple2);cursor:pointer}
+
+/* ── Loan cards ── */
+.list{padding:0 16px;display:flex;flex-direction:column;gap:8px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:transform .1s;position:relative;overflow:hidden}
+.card:active{transform:scale(.98)}
+.card.overdue{border-left:3px solid var(--red)}
+.card.soon{border-left:3px solid var(--yellow)}
+.card-ico{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.card-ico.gave{background:rgba(108,92,231,.14)}
+.card-ico.took{background:rgba(0,206,201,.12)}
+.card-body{flex:1;min-width:0}
+.card-name{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.card-sub.red{color:var(--red)}
+.card-sub.yel{color:var(--yellow)}
+.card-right{text-align:right;flex-shrink:0}
+.card-amt{font-size:15px;font-weight:700}
+.card-amt.gave{color:var(--purple2)}
+.card-amt.took{color:var(--green)}
+.card-cur{font-size:11px;color:var(--text2)}
+
+.empty{text-align:center;padding:44px 20px;color:var(--text2)}
+.empty .ico{font-size:52px;margin-bottom:14px}
+.empty p{font-size:15px}
+
+/* ── Bottom nav ── */
+.bottom-nav{display:flex;background:var(--card);border-top:1px solid var(--border);padding:8px 0 max(8px, env(safe-area-inset-bottom));flex-shrink:0;position:relative;z-index:10}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0;background:none;border:none;color:var(--text2);font-size:10px;font-weight:600;cursor:pointer;transition:color .2s;user-select:none}
+.nav-btn .ni{font-size:22px;line-height:1}
+.nav-btn.on{color:var(--purple2)}
+
+/* ── Sub header ── */
+.sub-hd{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:5}
+.sub-hd h2{font-size:17px;font-weight:700}
+.back{width:34px;height:34px;border-radius:50%;background:var(--card);border:1px solid var(--border);color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:8px;padding:12px 16px}
+.tab{padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ── Spinner ── */
+.spin-wrap{display:flex;justify-content:center;padding:40px}
+.spin{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--purple2);border-radius:50%;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ── Add modal ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:none;align-items:flex-end;backdrop-filter:blur(6px)}
+.overlay.open{display:flex}
+.modal{background:var(--bg);border-radius:24px 24px 0 0;width:100%;max-height:96vh;overflow-y:auto;animation:up .28s ease;padding-bottom:max(20px,env(safe-area-inset-bottom))}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:2}
+.modal-hd h2{font-size:18px;font-weight:700}
+.close{width:32px;height:32px;border-radius:50%;background:var(--card);border:none;color:var(--text2);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.type-sel{display:flex;gap:10px;padding:14px 18px}
+.type-opt{flex:1;padding:11px;border-radius:14px;border:2px solid var(--border);background:var(--card);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;text-align:center;transition:all .18s;user-select:none}
+.type-opt.on.gave{border-color:var(--accent);background:rgba(108,92,231,.15);color:var(--purple2)}
+.type-opt.on.took{border-color:var(--green);background:rgba(0,206,201,.12);color:var(--green)}
+.amt-box{margin:0 18px;background:var(--card);border-radius:16px;padding:18px;text-align:center}
+.amt-num{font-size:42px;font-weight:800;letter-spacing:-2px;min-height:52px;transition:color .2s}
+.amt-num.gave{color:var(--purple2)}
+.amt-num.took{color:var(--green)}
+.amt-cur{font-size:14px;color:var(--text2);margin-top:4px}
+.fields{padding:14px 18px;display:flex;flex-direction:column;gap:11px}
+.flabel{font-size:12px;color:var(--text2);font-weight:600;margin-bottom:5px}
+.finput{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-size:15px;outline:none;width:100%;transition:border-color .2s;-webkit-appearance:none}
+.finput:focus{border-color:var(--accent)}
+.finput::placeholder{color:var(--text2)}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:14px 18px}
+.np{background:var(--card);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:22px;font-weight:600;height:60px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s,background .1s;user-select:none}
+.np:active{transform:scale(.93);background:var(--card2)}
+.np.del{font-size:19px;color:var(--text2)}
+.save-btn{margin:2px 18px 0;padding:15px;background:var(--grad);border:none;border-radius:16px;color:#fff;font-size:17px;font-weight:700;cursor:pointer;width:calc(100% - 36px);transition:opacity .2s,transform .1s}
+.save-btn:active{transform:scale(.98);opacity:.9}
+.save-btn:disabled{opacity:.45}
+
+/* ── Detail modal ── */
+.detail-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:flex-end}
+.detail-ov.open{display:flex}
+.detail{background:var(--bg);border-radius:24px 24px 0 0;padding:22px 20px max(20px,env(safe-area-inset-bottom));width:100%;animation:up .28s ease}
+.d-type{font-size:13px;color:var(--text2);margin-bottom:5px}
+.d-name{font-size:22px;font-weight:800;margin-bottom:10px}
+.d-amt{font-size:34px;font-weight:800;margin-bottom:16px}
+.d-amt.gave{color:var(--purple2)}
+.d-amt.took{color:var(--green)}
+.d-row{font-size:14px;color:var(--text2);margin-bottom:6px}
+.d-btns{display:flex;gap:10px;margin-top:22px}
+.d-paid{flex:1;padding:15px;background:var(--green);border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.d-paid:active{opacity:.8}
+.d-cancel{padding:15px 18px;background:var(--card);border:1px solid var(--border);border-radius:14px;color:var(--text2);font-size:16px;cursor:pointer}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(40,40,70,.95);color:#fff;padding:11px 20px;border-radius:24px;font-size:14px;font-weight:500;opacity:0;transition:all .3s;z-index:999;white-space:nowrap;pointer-events:none;backdrop-filter:blur(10px)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <div id="s-home" class="screen active">
+    <div class="header">
+      <div class="header-top">
+        <div class="user-row">
+          <div class="avatar" id="av">?</div>
+          <div>
+            <div class="greeting">Xush kelibsiz 👋</div>
+            <div class="username" id="uname">...</div>
+          </div>
+        </div>
+      </div>
+      <div class="balance-wrap">
+        <div class="bal-label">Umumiy balans</div>
+        <div class="bal-amount" id="bal">0 so'm</div>
+        <div class="bal-stats">
+          <div class="bal-stat">💸 Berganlar<b id="s-gave">—</b></div>
+          <div class="bal-stat">🤝 Olganlar<b id="s-took">—</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="act-btn" onclick="openAdd('gave')"><div class="act-icon g">💸</div>Berdim</button>
+      <button class="act-btn" onclick="openAdd('took')"><div class="act-icon t">🤝</div>Oldim</button>
+      <button class="act-btn" onclick="goLoans()"><div class="act-icon l">📋</div>Ro'yxat</button>
+      <button class="act-btn" onclick="goHist()"><div class="act-icon h">📜</div>Tarix</button>
+    </div>
+    <div class="sec-head"><h3>So'nggi qarzlar</h3><a onclick="goLoans()">Barchasi →</a></div>
+    <div class="list" id="home-list"><div class="spin-wrap"><div class="spin"></div></div></div>
+  </div>
+
+  <!-- LOANS -->
+  <div id="s-loans" class="screen">
+    <div class="sub-hd">
+      <button class="back" onclick="goHome()">←</button>
+      <h2>Qarzlar</h2>
+    </div>
+    <div class="tabs">
+      <button class="tab on" onclick="filt('all',this)">Barchasi</button>
+      <button class="tab" onclick="filt('gave',this)">💸 Berganlar</button>
+      <button class="tab" onclick="filt('took',this)">🤝 Olganlar</button>
+    </div>
+    <div class="list" id="loans-list"><div class="spin-wrap"><div class="spin"></div></div></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="s-hist" class="screen">
+    <div class="sub-hd">
+      <button class="back" onclick="goHome()">←</button>
+      <h2>To'langan qarzlar</h2>
+    </div>
+    <div class="list" id="hist-list" style="margin-top:12px"><div class="spin-wrap"><div class="spin"></div></div></div>
+  </div>
+
+</div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+  <button class="nav-btn on" id="nb-home" onclick="goHome()"><span class="ni">🏠</span>Asosiy</button>
+  <button class="nav-btn" id="nb-gave" onclick="goLoans('gave')"><span class="ni">💸</span>Berganlar</button>
+  <button class="nav-btn" id="nb-took" onclick="goLoans('took')"><span class="ni">🤝</span>Olganlar</button>
+  <button class="nav-btn" id="nb-hist" onclick="goHist()"><span class="ni">📜</span>Tarix</button>
+</nav>
+
+<!-- Add modal -->
+<div class="overlay" id="add-ov" onclick="maybeClose(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hd">
+      <h2 id="modal-title">💸 Qarz berdim</h2>
+      <button class="close" onclick="closeAdd()">✕</button>
+    </div>
+    <div class="type-sel">
+      <button class="type-opt on gave" id="t-gave" onclick="setType('gave')">💸 Berdim</button>
+      <button class="type-opt" id="t-took" onclick="setType('took')">🤝 Oldim</button>
+    </div>
+    <div class="amt-box">
+      <div class="amt-num gave" id="amt-disp">0</div>
+      <div class="amt-cur">so'm</div>
+    </div>
+    <div class="fields">
+      <div>
+        <div class="flabel">👤 Kim</div>
+        <input class="finput" id="f-person" type="text" placeholder="Ism yozing..." autocomplete="off" autocorrect="off">
+      </div>
+      <div>
+        <div class="flabel">📝 Izoh (ixtiyoriy)</div>
+        <input class="finput" id="f-desc" type="text" placeholder="Sabab yoki eslatma..." autocomplete="off">
+      </div>
+      <div>
+        <div class="flabel">📅 Qaytarish muddati (ixtiyoriy)</div>
+        <input class="finput" id="f-date" type="date">
+      </div>
+    </div>
+    <div class="numpad">
+      <button class="np" onclick="np('1')">1</button>
+      <button class="np" onclick="np('2')">2</button>
+      <button class="np" onclick="np('3')">3</button>
+      <button class="np" onclick="np('4')">4</button>
+      <button class="np" onclick="np('5')">5</button>
+      <button class="np" onclick="np('6')">6</button>
+      <button class="np" onclick="np('7')">7</button>
+      <button class="np" onclick="np('8')">8</button>
+      <button class="np" onclick="np('9')">9</button>
+      <button class="np" onclick="np('000')">000</button>
+      <button class="np" onclick="np('0')">0</button>
+      <button class="np del" onclick="np('del')">⌫</button>
+    </div>
+    <button class="save-btn" id="save-btn" onclick="saveLoan()">Saqlash</button>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="detail-ov" id="det-ov">
+  <div class="detail">
+    <div class="d-type" id="d-type"></div>
+    <div class="d-name" id="d-name"></div>
+    <div class="d-amt" id="d-amt"></div>
+    <div class="d-row" id="d-desc"></div>
+    <div class="d-row" id="d-date"></div>
+    <div class="d-row" id="d-created"></div>
+    <div class="d-btns">
+      <button class="d-paid" onclick="doPaid()">✅ To'landi</button>
+      <button class="d-cancel" onclick="closeDet()">Yopish</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.expand();
+  tg.setBackgroundColor?.('#0d0d18');
+  tg.setHeaderColor?.('#6c5ce7');
+  tg.disableVerticalSwipes?.();
+}
+
+const initData = tg?.initData || '';
+const tgUser  = tg?.initDataUnsafe?.user || {};
+
+let amtStr = '';
+let curType = 'gave';
+let loansMap = {};
+let curFilter = 'all';
+let selLoan = null;
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+
+function init() {
+  if (tgUser.first_name) {
+    const name = tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
+    document.getElementById('uname').textContent = name;
+    document.getElementById('av').textContent = tgUser.first_name[0].toUpperCase();
+  }
+  loadHome();
+}
+
+// ── API ───────────────────────────────────────────────────────────────────────
+
+async function api(method, path, body) {
+  const r = await fetch(path, {
+    method,
+    headers: { 'Content-Type': 'application/json', 'X-Init-Data': initData },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+// ── Load ──────────────────────────────────────────────────────────────────────
+
+async function loadHome() {
+  try {
+    const [sum, loans] = await Promise.all([
+      api('GET', '/api/summary'),
+      api('GET', '/api/loans?loan_type=all&paid=false'),
+    ]);
+    loans.forEach(l => loansMap[l.id] = l);
+
+    const b = sum.balance;
+    const el = document.getElementById('bal');
+    el.textContent = (b < 0 ? '−' : '') + fmtN(Math.abs(b)) + " so'm";
+    el.className = 'bal-amount' + (b < 0 ? ' neg' : '');
+    document.getElementById('s-gave').textContent = fmtN(sum.total_gave) + " so'm";
+    document.getElementById('s-took').textContent = fmtN(sum.total_took) + " so'm";
+
+    renderList('home-list', loans.slice(0, 6));
+  } catch(e) {
+    document.getElementById('home-list').innerHTML = err();
+  }
+}
+
+async function loadLoans(type = 'all') {
+  document.getElementById('loans-list').innerHTML = spin();
+  try {
+    const loans = await api('GET', `/api/loans?loan_type=${type}&paid=false`);
+    loans.forEach(l => loansMap[l.id] = l);
+    renderList('loans-list', loans);
+  } catch(e) {
+    document.getElementById('loans-list').innerHTML = err();
+  }
+}
+
+async function loadHist() {
+  document.getElementById('hist-list').innerHTML = spin();
+  try {
+    const loans = await api('GET', '/api/history');
+    if (!loans.length) {
+      document.getElementById('hist-list').innerHTML = empty('📭', "To'langan qarzlar yo'q");
+      return;
+    }
+    document.getElementById('hist-list').innerHTML = loans.map(r => {
+      const cls = r.loan_type;
+      const arrow = cls === 'gave' ? '💸' : '🤝';
+      return card(r.id, cls, arrow, r.person_name,
+        '✅ ' + (r.paid_at || '').slice(0, 10),
+        fmtN(r.amount), false);
+    }).join('');
+  } catch(e) {
+    document.getElementById('hist-list').innerHTML = err();
+  }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+
+function renderList(id, loans) {
+  if (!loans.length) {
+    document.getElementById(id).innerHTML = empty('🎉', "To'lanmagan qarz yo'q!");
+    return;
+  }
+  document.getElementById(id).innerHTML = loans.map(r => {
+    const cls = r.loan_type;
+    const arrow = cls === 'gave' ? '💸' : '🤝';
+    let sub = '', cardCls = '';
+    if (r.due_date) {
+      const diff = daysDiff(r.due_date);
+      if (diff < 0)      { sub = `<span class="card-sub red">⚠️ Muddati o'tgan (${Math.abs(diff)} kun)</span>`; cardCls = 'overdue'; }
+      else if (diff === 0){ sub = `<span class="card-sub red">🔴 Bugun qaytarish kerak!</span>`; cardCls = 'overdue'; }
+      else if (diff <= 3) { sub = `<span class="card-sub yel">🟡 ${fmtDate(r.due_date)} (${diff} kun)</span>`; cardCls = 'soon'; }
+      else                { sub = `<span class="card-sub">📅 ${fmtDate(r.due_date)}</span>`; }
+    } else {
+      sub = `<span class="card-sub">${esc(r.description || (cls === 'gave' ? 'Bergan' : 'Olgan'))}</span>`;
+    }
+    return card(r.id, cls, arrow, r.person_name, sub, fmtN(r.amount), true, cardCls);
+  }).join('');
+}
+
+function card(id, cls, arrow, name, sub, amt, clickable, extra = '') {
+  const onclick = clickable ? `onclick="showDet('${id}')"` : '';
+  return `<div class="card ${extra}" ${onclick}>
+    <div class="card-ico ${cls}">${arrow}</div>
+    <div class="card-body">
+      <div class="card-name">${esc(name)}</div>
+      <div>${sub}</div>
+    </div>
+    <div class="card-right">
+      <div class="card-amt ${cls}">${amt}</div>
+      <div class="card-cur">so'm</div>
+    </div>
+  </div>`;
+}
+
+// ── Detail ────────────────────────────────────────────────────────────────────
+
+function showDet(id) {
+  const r = loansMap[id];
+  if (!r) return;
+  selLoan = r;
+  document.getElementById('d-type').textContent = r.loan_type === 'gave' ? '💸 Bergan qarz' : '🤝 Olgan qarz';
+  document.getElementById('d-name').textContent = r.person_name;
+  document.getElementById('d-amt').textContent = fmtN(r.amount) + " so'm";
+  document.getElementById('d-amt').className = 'd-amt ' + r.loan_type;
+  document.getElementById('d-desc').textContent = r.description ? '📝 ' + r.description : '';
+  document.getElementById('d-date').textContent = r.due_date ? '📅 Muddat: ' + fmtDate(r.due_date) : '';
+  document.getElementById('d-created').textContent = "🗓 Qo'shilgan: " + (r.created_at || '').slice(0, 10);
+  document.getElementById('det-ov').classList.add('open');
+}
+
+function closeDet() {
+  document.getElementById('det-ov').classList.remove('open');
+  selLoan = null;
+}
+
+async function doPaid() {
+  if (!selLoan) return;
+  try {
+    await api('PATCH', `/api/loans/${selLoan.id}/paid`);
+    delete loansMap[selLoan.id];
+    closeDet();
+    toast('✅ To\'landi!');
+    tg?.HapticFeedback?.notificationOccurred('success');
+    loadHome();
+    if (document.getElementById('s-loans').classList.contains('active')) loadLoans(curFilter);
+  } catch { toast('⚠️ Xato yuz berdi'); }
+}
+
+// ── Add modal ─────────────────────────────────────────────────────────────────
+
+function openAdd(type = 'gave') {
+  amtStr = '';
+  updateAmt();
+  setType(type);
+  document.getElementById('f-person').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-date').value = '';
+  document.getElementById('add-ov').classList.add('open');
+  tg?.BackButton?.show();
+  tg?.BackButton?.onClick(closeAdd);
+}
+
+function closeAdd() {
+  document.getElementById('add-ov').classList.remove('open');
+  tg?.BackButton?.hide();
+}
+
+function maybeClose(e) {
+  if (e.target === document.getElementById('add-ov')) closeAdd();
+}
+
+function setType(t) {
+  curType = t;
+  document.getElementById('t-gave').className = 'type-opt' + (t === 'gave' ? ' on gave' : '');
+  document.getElementById('t-took').className = 'type-opt' + (t === 'took' ? ' on took' : '');
+  document.getElementById('modal-title').textContent = t === 'gave' ? '💸 Qarz berdim' : '🤝 Qarz oldim';
+  document.getElementById('amt-disp').className = 'amt-num ' + t;
+}
+
+function np(v) {
+  if (v === 'del')      amtStr = amtStr.slice(0, -1);
+  else if (v === '000') { if (amtStr) amtStr += '000'; }
+  else { if (amtStr.length < 12) amtStr += v; }
+  updateAmt();
+}
+
+function updateAmt() {
+  document.getElementById('amt-disp').textContent = fmtN(parseInt(amtStr || '0'));
+}
+
+async function saveLoan() {
+  const amount = parseInt(amtStr || '0');
+  const person = document.getElementById('f-person').value.trim();
+  if (!person) { toast('Ism kiriting!'); document.getElementById('f-person').focus(); return; }
+  if (amount < 100) { toast('Miqdor kiriting!'); return; }
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saqlanmoqda...';
+  try {
+    const loan = await api('POST', '/api/loans', {
+      loan_type: curType,
+      person_name: person,
+      amount,
+      description: document.getElementById('f-desc').value.trim(),
+      due_date: document.getElementById('f-date').value || null,
+    });
+    loansMap[loan.id] = loan;
+    closeAdd();
+    toast(curType === 'gave' ? '💸 Qarz berish qayd etildi!' : '🤝 Qarz olish qayd etildi!');
+    tg?.HapticFeedback?.notificationOccurred('success');
+    loadHome();
+  } catch { toast('⚠️ Xato yuz berdi'); }
+  finally { btn.disabled = false; btn.textContent = 'Saqlash'; }
+}
+
+// ── Nav ───────────────────────────────────────────────────────────────────────
+
+function setScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function setNav(id) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+
+function goHome() { setScreen('s-home'); setNav('nb-home'); loadHome(); }
+
+function goLoans(type) {
+  setScreen('s-loans'); setNav('nb-' + (type || 'home'));
+  if (type) {
+    curFilter = type;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+    const idx = type === 'gave' ? 1 : 2;
+    document.querySelectorAll('.tab')[idx]?.classList.add('on');
+  }
+  loadLoans(curFilter);
+}
+
+function goHist() { setScreen('s-hist'); setNav('nb-hist'); loadHist(); }
+
+function filt(type, btn) {
+  curFilter = type;
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  loadLoans(type);
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+
+function fmtN(n) { return Math.floor(n || 0).toLocaleString('ru-RU').replace(/ /g, ' '); }
+function fmtDate(s) { if(!s) return ''; const [y,m,d]=s.split('-'); return `${d}.${m}.${y}`; }
+function daysDiff(s) { return Math.round((new Date(s) - new Date(new Date().toDateString())) / 864e5); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function spin() { return '<div class="spin-wrap"><div class="spin"></div></div>'; }
+function empty(ico, txt) { return `<div class="empty"><div class="ico">${ico}</div><p>${txt}</p></div>`; }
+function err() { return empty('⚠️', 'Xato yuz berdi'); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+init();
+</script>
+</body>
+</html>
