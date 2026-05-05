@@ -15,6 +15,7 @@ from telegram.ext import (
 )
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 load_dotenv()
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
@@ -215,6 +216,78 @@ async def history_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         lines.append(f"{arrow} {h(r['person_name'])} | <code>{fmt(r['amount'])}</code> so'm | {(r.get('paid_at',''))[:10]}")
     await update.message.reply_text("\n".join(lines), parse_mode="HTML", reply_markup=main_menu())
 
+# ── Reminders ─────────────────────────────────────────────────────────────────
+
+# days_left -> (reminder_type, label)
+REMINDER_THRESHOLDS = {
+    7: ("7d", "7 kun qoldi"),
+    3: ("3d", "3 kun qoldi"),
+    1: ("1d", "Ertaga muddat tugaydi!"),
+    0: ("1h", "Bugun muddat tugaydi!"),
+}
+
+async def send_reminders():
+    if not tg_app:
+        return
+    try:
+        today = date.today()
+        all_loans = (
+            supabase.table("loans")
+            .select("id,user_id,loan_type,person_name,amount,due_date")
+            .eq("is_paid", False)
+            .execute()
+            .data
+        )
+        loans = [l for l in all_loans if l.get("due_date")]
+
+        for loan in loans:
+            days_left = (date.fromisoformat(loan["due_date"]) - today).days
+            if days_left not in REMINDER_THRESHOLDS:
+                continue
+
+            r_type, r_label = REMINDER_THRESHOLDS[days_left]
+
+            already_sent = (
+                supabase.table("reminders_sent")
+                .select("id")
+                .eq("loan_id", loan["id"])
+                .eq("reminder_type", r_type)
+                .execute()
+                .data
+            )
+            if already_sent:
+                continue
+
+            arrow  = "💸" if loan["loan_type"] == "gave" else "🤝"
+            action = "bergan" if loan["loan_type"] == "gave" else "olgan"
+            emoji  = "🚨" if days_left == 0 else ("⚠️" if days_left == 1 else "🔔")
+            due_str = date.fromisoformat(loan["due_date"]).strftime("%d.%m.%Y")
+
+            text = (
+                f"{emoji} <b>Qarz eslatmasi!</b>\n\n"
+                f"{arrow} <b>{h(loan['person_name'])}</b> ({action})\n"
+                f"💰 <b>{fmt(loan['amount'])} so'm</b>\n"
+                f"📅 Muddat: <b>{due_str}</b>\n\n"
+                f"⏳ <b>{r_label}</b>"
+            )
+
+            try:
+                await tg_app.bot.send_message(
+                    chat_id=loan["user_id"],
+                    text=text,
+                    parse_mode="HTML",
+                )
+                supabase.table("reminders_sent").insert({
+                    "loan_id": loan["id"],
+                    "reminder_type": r_type,
+                }).execute()
+                logging.info(f"Reminder sent: loan={loan['id']} type={r_type}")
+            except Exception as e:
+                logging.warning(f"Reminder send failed user={loan['user_id']}: {e}")
+
+    except Exception as e:
+        logging.error(f"send_reminders error: {e}")
+
 def build_tg_app():
     app = Application.builder().token(BOT_TOKEN).updater(None).build()
     conv = ConversationHandler(
@@ -250,7 +323,16 @@ async def lifespan(_: FastAPI):
         wh = f"{WEBHOOK_URL}/webhook/{BOT_TOKEN}"
         await tg_app.bot.set_webhook(wh)
         logging.info(f"Webhook: {wh}")
+
+    scheduler = AsyncIOScheduler(timezone="Asia/Tashkent")
+    scheduler.add_job(send_reminders, "interval", minutes=30, id="reminders",
+                      next_run_time=datetime.now(timezone.utc))
+    scheduler.start()
+    logging.info("Reminder scheduler started (every 30 min)")
+
     yield
+
+    scheduler.shutdown(wait=False)
     await tg_app.bot.delete_webhook()
     await tg_app.stop()
     await tg_app.shutdown()
@@ -312,6 +394,12 @@ async def api_paid(loan_id: str, request: Request):
 async def api_history(request: Request):
     user = get_user(request)
     return supabase.table("loans").select("*").eq("user_id", user["id"]).eq("is_paid", True).order("paid_at", desc=True).limit(30).execute().data
+
+@fast_app.post("/api/reminders/run")
+async def run_reminders_now():
+    """Testlash uchun: reminderni qo'lda ishga tushirish."""
+    await send_reminders()
+    return {"ok": True}
 
 if __name__ == "__main__":
     import uvicorn
