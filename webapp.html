@@ -134,13 +134,6 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
 .tab i{font-size:14px}
 .tab.on{background:var(--v);border-color:var(--v);color:#fff}
 
-/* ─ Add Screen ── */
-.type-sel{display:flex;gap:10px;padding:10px 16px}
-.type-opt{flex:1;padding:11px;border-radius:16px;border:1.5px solid var(--border);background:var(--s1);color:var(--txt3);font-size:14px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;user-select:none}
-.type-opt i{font-size:18px}
-.type-opt.on.gave{border-color:var(--v);background:rgba(124,92,252,.15);color:var(--v2)}
-.type-opt.on.took{border-color:var(--green);background:rgba(0,201,167,.12);color:var(--green)}
-
 .amt-box{margin:0 16px;background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:16px;text-align:center;position:relative;overflow:hidden}
 .amt-box::before{content:'';position:absolute;width:180px;height:180px;border-radius:50%;opacity:.08;right:-60px;top:-60px;pointer-events:none}
 .amt-box.gave::before{background:var(--v)}
@@ -300,14 +293,6 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
     <div class="sub-hd">
       <button class="back-btn" onclick="closeAdd()"><i class="ri-arrow-left-s-line"></i></button>
       <h2 id="m-title">Qarz berdim</h2>
-    </div>
-    <div class="type-sel">
-      <button class="type-opt on gave" id="t-gave" onclick="setType('gave')">
-        <i class="ri-send-plane-fill"></i> Berdim
-      </button>
-      <button class="type-opt" id="t-took" onclick="setType('took')">
-        <i class="ri-download-fill"></i> Oldim
-      </button>
     </div>
     <div class="amt-box gave" id="amt-box">
       <div class="amt-num gave" id="amt-d">0</div>
@@ -529,8 +514,6 @@ function closeAdd(){
 function setType(t){
   curType=t;
   const gave=t==='gave';
-  document.getElementById('t-gave').className='type-opt'+(gave?' on gave':'');
-  document.getElementById('t-took').className='type-opt'+(!gave?' on took':'');
   document.getElementById('m-title').textContent=gave?'💸 Qarz berdim':'🤝 Qarz oldim';
   document.getElementById('amt-d').className='amt-num '+t;
   document.getElementById('amt-box').className='amt-box '+t;
