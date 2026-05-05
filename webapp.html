@@ -30,13 +30,12 @@
 html,body{height:100%;overflow:hidden;background:var(--bg)}
 body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif;display:flex;flex-direction:column}
 
-/* Scrollable wrapper */
 #app{flex:1;position:relative;overflow:hidden}
 .screen{position:absolute;inset:0;overflow-y:auto;display:none;padding-bottom:80px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .screen::-webkit-scrollbar{display:none}
 .screen.active{display:block}
 
-/* ─ Bottom Nav ─────────────────────────────────────────────────────────────── */
+/* ─ Bottom Nav ── */
 .bnav{display:flex;background:rgba(12,12,22,0.95);border-top:1px solid var(--border);padding:6px 8px max(10px,env(safe-area-inset-bottom));backdrop-filter:blur(20px);position:relative;z-index:10;flex-shrink:0}
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;background:none;border:none;color:var(--txt2);font-size:10px;font-weight:600;cursor:pointer;border-radius:14px;transition:all .2s;position:relative;user-select:none}
 .nb i{font-size:22px;line-height:1;transition:color .2s}
@@ -44,13 +43,12 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
 .nb.on i{color:var(--v2)}
 .nb.on::before{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:var(--grad);border-radius:0 0 4px 4px}
 
-/* ─ Home Header ─────────────────────────────────────────────────────────────── */
+/* ─ Home Header ── */
 .home-hd{padding:12px 20px 0;position:relative;overflow:hidden}
 .hd-bg{position:absolute;inset:0;background:var(--grad);opacity:.12;pointer-events:none}
 .hd-orb{position:absolute;border-radius:50%;pointer-events:none}
 .hd-orb.a{width:220px;height:220px;background:radial-gradient(circle,rgba(124,92,252,.3),transparent 70%);top:-80px;right:-60px}
 .hd-orb.b{width:160px;height:160px;background:radial-gradient(circle,rgba(94,53,177,.25),transparent 70%);bottom:-60px;left:-40px}
-
 .hd-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;padding-bottom:12px}
 .hd-user{display:flex;align-items:center;gap:12px}
 .hd-av{width:44px;height:44px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;box-shadow:var(--shadow);flex-shrink:0}
@@ -90,7 +88,7 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
 .sec-hd a{font-size:13px;color:var(--v2);cursor:pointer;display:flex;align-items:center;gap:2px}
 .sec-hd a i{font-size:14px}
 
-/* Loan list & cards */
+/* Loan cards */
 .lst{padding:0 16px;display:flex;flex-direction:column;gap:8px}
 .lcard{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:14px 15px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:transform .15s,background .15s;position:relative;overflow:hidden}
 .lcard:active{transform:scale(.98);background:var(--s2)}
@@ -123,7 +121,7 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
 .spn{width:32px;height:32px;border:3px solid var(--s2);border-top-color:var(--v2);border-radius:50%;animation:rot .7s linear infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
 
-/* ─ Sub header ── */
+/* Sub header */
 .sub-hd{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(9,9,15,.9);backdrop-filter:blur(12px);z-index:5}
 .sub-hd h2{font-size:17px;font-weight:700;flex:1}
 .back-btn{width:36px;height:36px;border-radius:50%;background:var(--s1);border:1px solid var(--border);color:var(--txt);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
@@ -136,62 +134,49 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
 .tab i{font-size:14px}
 .tab.on{background:var(--v);border-color:var(--v);color:#fff}
 
-/* ─ Add overlay ─────────────────────────────────────────────────────────────── */
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:flex-end;backdrop-filter:blur(8px)}
-.ov.open{display:flex}
-.modal{background:var(--bg);border-radius:28px 28px 0 0;width:100%;max-height:95vh;overflow-y:auto;animation:slideUp .3s cubic-bezier(.32,1.2,.45,1);padding-bottom:max(20px,env(safe-area-inset-bottom));scrollbar-width:none}
-.modal::-webkit-scrollbar{display:none}
-@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
-
-.modal-hd{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 16px;position:sticky;top:0;background:var(--bg);z-index:2;border-bottom:1px solid var(--border)}
-.modal-hd h2{font-size:18px;font-weight:700}
-.close-btn{width:34px;height:34px;border-radius:50%;background:var(--s2);border:none;color:var(--txt3);display:flex;align-items:center;justify-content:center;cursor:pointer}
-.close-btn i{font-size:18px}
-
-/* Type selector */
-.type-sel{display:flex;gap:10px;padding:16px 20px}
-.type-opt{flex:1;padding:13px;border-radius:16px;border:1.5px solid var(--border);background:var(--s1);color:var(--txt3);font-size:14px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;user-select:none}
+/* ─ Add Screen ── */
+.type-sel{display:flex;gap:10px;padding:10px 16px}
+.type-opt{flex:1;padding:11px;border-radius:16px;border:1.5px solid var(--border);background:var(--s1);color:var(--txt3);font-size:14px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;user-select:none}
 .type-opt i{font-size:18px}
 .type-opt.on.gave{border-color:var(--v);background:rgba(124,92,252,.15);color:var(--v2)}
 .type-opt.on.took{border-color:var(--green);background:rgba(0,201,167,.12);color:var(--green)}
 
-/* Amount display */
-.amt-box{margin:0 20px;background:var(--s1);border:1px solid var(--border);border-radius:22px;padding:22px 20px;text-align:center;position:relative;overflow:hidden}
+.amt-box{margin:0 16px;background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:16px;text-align:center;position:relative;overflow:hidden}
 .amt-box::before{content:'';position:absolute;width:180px;height:180px;border-radius:50%;opacity:.08;right:-60px;top:-60px;pointer-events:none}
 .amt-box.gave::before{background:var(--v)}
 .amt-box.took::before{background:var(--green)}
-.amt-num{font-size:44px;font-weight:800;letter-spacing:-2px;line-height:1.1;transition:color .2s;min-height:54px}
+.amt-num{font-size:36px;font-weight:800;letter-spacing:-1.5px;line-height:1.1;transition:color .2s;min-height:44px}
 .amt-num.gave{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .amt-num.took{background:linear-gradient(135deg,#00C9A7,#4CD9BE);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.amt-cur{font-size:14px;color:var(--txt3);margin-top:6px;font-weight:500}
+.amt-cur{font-size:13px;color:var(--txt3);margin-top:4px;font-weight:500}
 
 /* Fields */
-.fields{padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.fields{padding:10px 16px;display:flex;flex-direction:column;gap:8px}
 .field{position:relative}
 .field-ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--txt3);font-size:18px;pointer-events:none;z-index:1}
-.finput{background:var(--s1);border:1.5px solid var(--border);border-radius:16px;padding:14px 14px 14px 42px;color:var(--txt);font-size:15px;outline:none;width:100%;transition:border-color .2s,background .2s;-webkit-appearance:none;font-family:inherit}
+.finput{background:var(--s1);border:1.5px solid var(--border);border-radius:16px;padding:13px 14px 13px 42px;color:var(--txt);font-size:15px;outline:none;width:100%;transition:border-color .2s,background .2s;-webkit-appearance:none;font-family:inherit}
 .finput:focus{border-color:var(--v);background:var(--s2)}
 .finput::placeholder{color:var(--txt3)}
 .finput[type=date]{color-scheme:dark}
 
 /* Numpad */
-.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px 20px}
-.np{background:var(--s1);border:1px solid var(--border);border-radius:20px;color:var(--txt);font-size:24px;font-weight:700;height:64px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s,background .1s;user-select:none;font-family:inherit}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 16px}
+.np{background:var(--s1);border:1px solid var(--border);border-radius:18px;color:var(--txt);font-size:22px;font-weight:700;height:56px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s,background .1s;user-select:none;font-family:inherit}
 .np:active{transform:scale(.9);background:var(--s3)}
-.np.del{font-size:22px}
-.np.del i{font-size:22px;color:var(--txt3)}
-.np-zero{font-size:22px}
+.np.del i{font-size:20px;color:var(--txt3)}
+.np-zero{font-size:20px}
 
 /* Save button */
-.save-btn{margin:4px 20px 0;padding:17px;background:var(--grad);border:none;border-radius:18px;color:#fff;font-size:17px;font-weight:700;cursor:pointer;width:calc(100% - 40px);transition:opacity .2s,transform .1s;box-shadow:0 8px 24px rgba(124,92,252,.35);display:flex;align-items:center;justify-content:center;gap:8px}
+.save-btn{margin:8px 16px 0;padding:16px;background:var(--grad);border:none;border-radius:18px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;width:calc(100% - 32px);transition:opacity .2s,transform .1s;box-shadow:0 8px 24px rgba(124,92,252,.35);display:flex;align-items:center;justify-content:center;gap:8px}
 .save-btn i{font-size:20px}
 .save-btn:active{transform:scale(.98);opacity:.9}
 .save-btn:disabled{opacity:.4;box-shadow:none}
 
-/* ─ Detail sheet ─────────────────────────────────────────────────────────────── */
+/* ─ Detail sheet ── */
 .det-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:flex-end;backdrop-filter:blur(8px)}
 .det-ov.open{display:flex}
 .det{background:var(--bg);border-radius:28px 28px 0 0;padding:24px 22px max(22px,env(safe-area-inset-bottom));width:100%;animation:slideUp .28s cubic-bezier(.32,1.2,.45,1)}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
 .det-badge{display:inline-flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:13px;color:var(--txt3);margin-bottom:14px}
 .det-badge i{font-size:15px}
 .det-badge.gave i{color:var(--v2)}
@@ -215,7 +200,6 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
 .toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(12px);background:rgba(30,30,50,.95);color:var(--txt);padding:12px 22px;border-radius:28px;font-size:14px;font-weight:600;opacity:0;transition:all .3s cubic-bezier(.32,1.2,.45,1);z-index:999;white-space:nowrap;pointer-events:none;backdrop-filter:blur(20px);border:1px solid var(--border);display:flex;align-items:center;gap:8px}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* Divider */
 .divider{height:1px;background:var(--border);margin:0 16px 12px}
 </style>
 </head>
@@ -311,30 +295,11 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
     <div class="lst" id="hist-lst" style="margin-top:14px"><div class="spn-w"><div class="spn"></div></div></div>
   </div>
 
-</div>
-
-<!-- Bottom Nav -->
-<nav class="bnav">
-  <button class="nb on" id="nb-home" onclick="goHome()">
-    <i class="ri-home-5-fill"></i>Asosiy
-  </button>
-  <button class="nb" id="nb-gave" onclick="goLoans('gave')">
-    <i class="ri-arrow-up-circle-line"></i>Berganlar
-  </button>
-  <button class="nb" id="nb-took" onclick="goLoans('took')">
-    <i class="ri-arrow-down-circle-line"></i>Olganlar
-  </button>
-  <button class="nb" id="nb-hist" onclick="goHist()">
-    <i class="ri-history-line"></i>Tarix
-  </button>
-</nav>
-
-<!-- Add Modal -->
-<div class="ov" id="add-ov" onclick="maybeClose(event)">
-  <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-hd">
+  <!-- ADD -->
+  <div id="s-add" class="screen">
+    <div class="sub-hd">
+      <button class="back-btn" onclick="closeAdd()"><i class="ri-arrow-left-s-line"></i></button>
       <h2 id="m-title">Qarz berdim</h2>
-      <button class="close-btn" onclick="closeAdd()"><i class="ri-close-line"></i></button>
     </div>
     <div class="type-sel">
       <button class="type-opt on gave" id="t-gave" onclick="setType('gave')">
@@ -352,10 +317,6 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
       <div class="field">
         <i class="ri-user-3-line field-ic"></i>
         <input class="finput" id="f-p" type="text" placeholder="Kimga / Kimdan?" autocomplete="off" autocorrect="off" autocapitalize="words">
-      </div>
-      <div class="field">
-        <i class="ri-sticky-note-line field-ic"></i>
-        <input class="finput" id="f-d" type="text" placeholder="Izoh (ixtiyoriy)" autocomplete="off">
       </div>
       <div class="field">
         <i class="ri-calendar-event-line field-ic"></i>
@@ -379,9 +340,26 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
     <button class="save-btn" id="sv-btn" onclick="saveLoan()">
       <i class="ri-check-line"></i> Saqlash
     </button>
-    <div style="height:8px"></div>
+    <div style="height:12px"></div>
   </div>
+
 </div>
+
+<!-- Bottom Nav -->
+<nav class="bnav">
+  <button class="nb on" id="nb-home" onclick="goHome()">
+    <i class="ri-home-5-fill"></i>Asosiy
+  </button>
+  <button class="nb" id="nb-gave" onclick="goLoans('gave')">
+    <i class="ri-arrow-up-circle-line"></i>Berganlar
+  </button>
+  <button class="nb" id="nb-took" onclick="goLoans('took')">
+    <i class="ri-arrow-down-circle-line"></i>Olganlar
+  </button>
+  <button class="nb" id="nb-hist" onclick="goHist()">
+    <i class="ri-history-line"></i>Tarix
+  </button>
+</nav>
 
 <!-- Detail Sheet -->
 <div class="det-ov" id="det-ov">
@@ -412,7 +390,7 @@ const initData = tg?.initData||'';
 const tgUser = tg?.initDataUnsafe?.user||{};
 let amtStr='', curType='gave', lmap={}, curFilt='all', sel=null;
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ── Init ──
 function init(){
   if(tgUser.first_name){
     const n=tgUser.first_name+(tgUser.last_name?' '+tgUser.last_name:'');
@@ -422,14 +400,14 @@ function init(){
   loadHome();
 }
 
-// ── API ───────────────────────────────────────────────────────────────────────
+// ── API ──
 async function api(m,p,b){
   const r=await fetch(p,{method:m,headers:{'Content-Type':'application/json','X-Init-Data':initData},body:b?JSON.stringify(b):undefined});
   if(!r.ok) throw new Error(r.status);
   return r.json();
 }
 
-// ── Load ──────────────────────────────────────────────────────────────────────
+// ── Load ──
 async function loadHome(){
   document.getElementById('home-lst').innerHTML=spin();
   try{
@@ -468,7 +446,7 @@ async function loadHist(){
   }catch{document.getElementById('hist-lst').innerHTML=errEl();}
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
+// ── Render ──
 function renderLst(id,loans){
   if(!loans.length){document.getElementById(id).innerHTML=emptyEl('ri-check-double-line','Hozircha qarz yo\'q!');return;}
   document.getElementById(id).innerHTML=loans.map(r=>{
@@ -481,7 +459,7 @@ function renderLst(id,loans){
       else if(d<=3){sub=`<div class="lcard-sub yel"><i class="ri-time-line"></i>${fmtDate(r.due_date)} — ${d} kun qoldi</div>`;cc='soon';}
       else{sub=`<div class="lcard-sub"><i class="ri-calendar-check-line"></i>${fmtDate(r.due_date)}</div>`;}
     }else{
-      sub=`<div class="lcard-sub"><i class="ri-text"></i>${esc(r.description||(cls==='gave'?'Bergan':'Olgan'))}</div>`;
+      sub=`<div class="lcard-sub"><i class="ri-user-line"></i>${esc(cls==='gave'?'Bergan':'Olgan')}</div>`;
     }
     return lc(r.id,cls,icon,r.person_name,sub,fmtN(r.amount),true,cls,cc);
   }).join('');
@@ -496,7 +474,7 @@ function lc(id,iCls,icon,name,sub,amt,clickable,amtCls,extraCls=''){
   </div>`;
 }
 
-// ── Detail ────────────────────────────────────────────────────────────────────
+// ── Detail ──
 function showDet(id){
   const r=lmap[id]; if(!r) return; sel=r;
   const gave=r.loan_type==='gave';
@@ -531,19 +509,22 @@ async function doPaid(){
   }catch{toast('⚠️ Xato yuz berdi');}
 }
 
-// ── Add ───────────────────────────────────────────────────────────────────────
+// ── Add ──
 function openAdd(t='gave'){
   amtStr=''; updateAmt();
   setType(t);
   document.getElementById('f-p').value='';
-  document.getElementById('f-d').value='';
   document.getElementById('f-dt').value='';
-  document.getElementById('add-ov').classList.add('open');
+  setScr('s-add');
+  setNb('');
   tg?.BackButton?.show();
   tg?.BackButton?.onClick(closeAdd);
 }
-function closeAdd(){document.getElementById('add-ov').classList.remove('open');tg?.BackButton?.hide();}
-function maybeClose(e){if(e.target===document.getElementById('add-ov')) closeAdd();}
+
+function closeAdd(){
+  tg?.BackButton?.hide();
+  goHome();
+}
 
 function setType(t){
   curType=t;
@@ -572,20 +553,21 @@ async function saveLoan(){
   try{
     const loan=await api('POST','/api/loans',{
       loan_type:curType, person_name:person, amount,
-      description:document.getElementById('f-d').value.trim(),
+      description:'',
       due_date:document.getElementById('f-dt').value||null,
     });
-    lmap[loan.id]=loan; closeAdd();
+    lmap[loan.id]=loan;
     toast(curType==='gave'?'💸 Qarz berish qayd etildi!':'🤝 Qarz olish qayd etildi!');
     tg?.HapticFeedback?.notificationOccurred('success');
+    closeAdd();
     loadHome();
   }catch{toast('⚠️ Xato yuz berdi');}
   finally{btn.disabled=false;btn.innerHTML='<i class="ri-check-line"></i> Saqlash';}
 }
 
-// ── Nav ───────────────────────────────────────────────────────────────────────
+// ── Nav ──
 function setScr(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
-function setNb(id){document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));document.getElementById(id).classList.add('on');}
+function setNb(id){document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));if(id)document.getElementById(id)?.classList.add('on');}
 
 function goHome(){setScr('s-home');setNb('nb-home');loadHome();}
 
@@ -607,7 +589,7 @@ function filt(t,btn){
   loadLoans(t);
 }
 
-// ── Utils ─────────────────────────────────────────────────────────────────────
+// ── Utils ──
 function fmtN(n){return Math.floor(n||0).toLocaleString('ru-RU');}
 function fmtDate(s){if(!s)return'';const[y,m,d]=s.split('-');return`${d}.${m}.${y}`;}
 function daysDiff(s){return Math.round((new Date(s)-new Date(new Date().toDateString()))/864e5);}
