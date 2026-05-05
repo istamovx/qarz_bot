@@ -226,6 +226,17 @@ REMINDER_THRESHOLDS = {
     0: ("1h", "Bugun muddat tugaydi!"),
 }
 
+async def keep_alive():
+    if not WEBHOOK_URL:
+        return
+    try:
+        import httpx
+        async with httpx.AsyncClient() as client:
+            await client.get(f"{WEBHOOK_URL}/health", timeout=10)
+        logging.info("Keep-alive ping OK")
+    except Exception as e:
+        logging.warning(f"Keep-alive ping failed: {e}")
+
 async def send_reminders():
     if not tg_app:
         return
@@ -327,8 +338,9 @@ async def lifespan(_: FastAPI):
     scheduler = AsyncIOScheduler(timezone="Asia/Tashkent")
     scheduler.add_job(send_reminders, "interval", minutes=30, id="reminders",
                       next_run_time=datetime.now(timezone.utc))
+    scheduler.add_job(keep_alive, "interval", minutes=10, id="keep_alive")
     scheduler.start()
-    logging.info("Reminder scheduler started (every 30 min)")
+    logging.info("Scheduler started: reminders (30 min), keep-alive (10 min)")
 
     yield
 
@@ -394,6 +406,10 @@ async def api_paid(loan_id: str, request: Request):
 async def api_history(request: Request):
     user = get_user(request)
     return supabase.table("loans").select("*").eq("user_id", user["id"]).eq("is_paid", True).order("paid_at", desc=True).limit(30).execute().data
+
+@fast_app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 @fast_app.post("/api/reminders/run")
 async def run_reminders_now():
