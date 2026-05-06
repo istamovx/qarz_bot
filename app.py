@@ -519,6 +519,17 @@ async def webapp_head():
 async def health():
     return {"status": "ok"}
 
+@fast_app.get("/debug/webhook")
+async def debug_webhook():
+    info = await tg_app.bot.get_webhook_info()
+    return {
+        "url": info.url,
+        "pending_update_count": info.pending_update_count,
+        "last_error_message": info.last_error_message,
+        "last_error_date": info.last_error_date.isoformat() if info.last_error_date else None,
+        "max_connections": info.max_connections,
+    }
+
 @fast_app.get("/api/me")
 async def api_me(request: Request):
     user = get_user(request)
