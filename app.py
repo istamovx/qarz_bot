@@ -183,8 +183,11 @@ def fmt(n): return f"{int(n):,}".replace(",", " ")
 def get_lang(user_id: int, context=None) -> str:
     if context and context.user_data.get("lang"):
         return context.user_data["lang"]
-    rows = supabase.table("user_settings").select("language").eq("user_id", user_id).execute().data
-    lang = rows[0]["language"] if rows else "uz"
+    try:
+        rows = supabase.table("user_settings").select("language").eq("user_id", user_id).execute().data
+        lang = rows[0]["language"] if rows else "uz"
+    except Exception:
+        lang = "uz"
     if context:
         context.user_data["lang"] = lang
     return lang
@@ -280,7 +283,10 @@ async def choose_lang(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     lang = query.data.replace("lang_", "")
     user_id = update.effective_user.id
-    set_lang(user_id, lang)
+    try:
+        set_lang(user_id, lang)
+    except Exception as e:
+        logging.error(f"choose_lang/set_lang error: {e}")
     context.user_data["lang"] = lang
     await query.edit_message_text(
         tx(lang, "welcome", name=h(update.effective_user.first_name)),

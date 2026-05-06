@@ -24,10 +24,20 @@
   --bal-main:#ffffff;
 }
 body.light{
-  --bg:#f2f2f7;--s1:rgba(0,0,0,0.04);--s2:rgba(0,0,0,0.07);--s3:rgba(0,0,0,0.10);
-  --border:rgba(0,0,0,0.09);--txt:#1a1a2e;--txt2:#9999bb;--txt3:#aaaacc;
-  --bnav-bg:rgba(242,242,247,0.96);--subhd-bg:rgba(242,242,247,0.92);
-  --sheet-bg:#ffffff;--bal-main:#ffffff;
+  --bg:#f4f4f8;
+  --s1:rgba(99,102,241,0.06);
+  --s2:rgba(99,102,241,0.10);
+  --s3:rgba(99,102,241,0.16);
+  --border:rgba(0,0,0,0.08);
+  --v:#4f46e5;--v2:#6366f1;--v3:#3730a3;
+  --grad:linear-gradient(135deg,#3730a3 0%,#4f46e5 50%,#818cf8 100%);
+  --green:#059669;--red:#dc2626;--yellow:#d97706;
+  --txt:#111827;--txt2:#6b7280;--txt3:#9ca3af;
+  --shadow:0 8px 32px rgba(99,102,241,0.14);
+  --bnav-bg:rgba(255,255,255,0.97);
+  --subhd-bg:rgba(244,244,248,0.95);
+  --sheet-bg:#ffffff;
+  --bal-main:#1e1b4b;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;background:var(--bg)}
@@ -195,6 +205,24 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
 .lang-chk{margin-left:auto;color:var(--v2);font-size:20px;display:none}
 .lang-opt.sel .lang-chk{display:block}
 .lang-cancel{margin-top:12px;padding:14px;background:var(--s1);border:1px solid var(--border);border-radius:16px;color:var(--txt3);font-size:15px;font-weight:600;cursor:pointer;width:100%;text-align:center}
+
+/* Light mode overrides */
+body.light .bal-card{background:rgba(99,102,241,0.07);border-color:rgba(99,102,241,0.18)}
+body.light .hd-bg{background:var(--grad)}
+body.light .tab.on{background:var(--v);border-color:var(--v)}
+body.light .finput{color-scheme:light}
+body.light .finput[type=date]{color-scheme:light}
+body.light .lcard-ic.gave{background:rgba(99,102,241,0.12)}
+body.light .lcard-ic.gave i{color:var(--v2)}
+body.light .lcard-amt.gave{color:var(--v)}
+body.light .bal-pill.gave i{color:var(--v2)}
+body.light .nb.on{color:var(--v)}
+body.light .nb.on i{color:var(--v)}
+body.light .nb.on::before{background:var(--grad)}
+body.light .act-ic.v{background:rgba(99,102,241,0.12)}
+body.light .act-ic.v i{color:var(--v2)}
+body.light .det-amt.gave{background:var(--grad);-webkit-background-clip:text;background-clip:text}
+body.light .amt-num.gave{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 
 /* Toast */
 .toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(12px);background:rgba(30,30,50,.95);color:var(--txt);padding:12px 22px;border-radius:28px;font-size:14px;font-weight:600;opacity:0;transition:all .3s cubic-bezier(.32,1.2,.45,1);z-index:999;white-space:nowrap;pointer-events:none;backdrop-filter:blur(20px);border:1px solid var(--border)}
