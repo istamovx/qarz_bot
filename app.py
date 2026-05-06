@@ -64,6 +64,7 @@ TEXTS = {
         "btn_lall":      "📊 Barcha qarzlar",
         "btn_menu":      "🏠 Menyu",
         "btn_app":       "📱 Ilovani ochish",
+        "btn_settings":  "⚙️ Sozlamalar",
         "label_gave":    "bergan",
         "label_took":    "olgan",
         "r7d":           "7 kun qoldi",
@@ -110,6 +111,7 @@ TEXTS = {
         "btn_lall":      "📊 Все долги",
         "btn_menu":      "🏠 Меню",
         "btn_app":       "📱 Открыть приложение",
+        "btn_settings":  "⚙️ Настройки",
         "label_gave":    "выдал",
         "label_took":    "взял",
         "r7d":           "Осталось 7 дней",
@@ -156,6 +158,7 @@ TEXTS = {
         "btn_lall":      "📊 All Loans",
         "btn_menu":      "🏠 Menu",
         "btn_app":       "📱 Open App",
+        "btn_settings":  "⚙️ Settings",
         "label_gave":    "lent",
         "label_took":    "borrowed",
         "r7d":           "7 days left",
@@ -247,6 +250,7 @@ def main_menu(lang: str):
         [InlineKeyboardButton(tx(lang,"btn_lgave"), callback_data="list_gave"),
          InlineKeyboardButton(tx(lang,"btn_ltook"), callback_data="list_took")],
         [InlineKeyboardButton(tx(lang,"btn_lall"), callback_data="list_all")],
+        [InlineKeyboardButton(tx(lang,"btn_settings"), callback_data="settings")],
     ]
     return InlineKeyboardMarkup(rows)
 
@@ -291,6 +295,13 @@ async def menu_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query; await q.answer()
     lang = get_lang(q.from_user.id, context)
     await q.edit_message_text(tx(lang, "menu"), reply_markup=main_menu(lang))
+
+async def settings_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query; await q.answer()
+    lang = get_lang(q.from_user.id, context)
+    await q.edit_message_text(
+        f"⚙️ {tx(lang,'btn_settings')}\n\n🌐 {tx(lang,'choose_lang')}",
+        reply_markup=lang_keyboard())
 
 async def add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query; await q.answer()
@@ -471,6 +482,7 @@ def build_tg_app():
     app.add_handler(conv)
     app.add_handler(CallbackQueryHandler(choose_lang,  pattern="^lang_(uz|ru|en)$"))
     app.add_handler(CallbackQueryHandler(menu_cb,      pattern="^menu$"))
+    app.add_handler(CallbackQueryHandler(settings_cb,  pattern="^settings$"))
     app.add_handler(CallbackQueryHandler(list_loans,   pattern="^list_(gave|took|all)$"))
     app.add_handler(CallbackQueryHandler(mark_paid_cb, pattern="^paid_"))
     return app
@@ -525,6 +537,16 @@ async def api_me(request: Request):
     user = get_user(request)
     rows = supabase.table("user_settings").select("language").eq("user_id", user["id"]).execute().data
     return {"language": rows[0]["language"] if rows else "uz"}
+
+@fast_app.patch("/api/me")
+async def api_update_me(request: Request):
+    user = get_user(request)
+    body = await request.json()
+    lang = body.get("language")
+    if lang not in ("uz", "ru", "en"):
+        raise HTTPException(400, "Invalid language")
+    set_lang(user["id"], lang)
+    return {"language": lang}
 
 @fast_app.get("/api/summary")
 async def api_summary(request: Request):
