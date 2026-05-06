@@ -210,7 +210,7 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
         <div class="hd-user">
           <div class="hd-av" id="av">?</div>
           <div>
-            <div class="hd-greet">Xush kelibsiz</div>
+            <div class="hd-greet" id="hd-greet">Xush kelibsiz</div>
             <div class="hd-name" id="uname">...</div>
           </div>
         </div>
@@ -218,20 +218,20 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
     </div>
 
     <div class="bal-card" id="bal-card">
-      <div class="bal-label"><i class="ri-wallet-3-line"></i> Umumiy balans</div>
+      <div class="bal-label"><i class="ri-wallet-3-line"></i> <span id="bal-lbl">Umumiy balans</span></div>
       <div class="bal-amt" id="bal-amt">— so'm</div>
       <div class="bal-row">
         <div class="bal-pill gave">
           <i class="ri-arrow-up-circle-fill"></i>
           <div class="bp-info">
-            <div class="bp-label">Berganlar</div>
+            <div class="bp-label" id="lent-lbl">Berganlar</div>
             <div class="bp-val" id="s-gave">—</div>
           </div>
         </div>
         <div class="bal-pill took">
           <i class="ri-arrow-down-circle-fill"></i>
           <div class="bp-info">
-            <div class="bp-label">Olganlar</div>
+            <div class="bp-label" id="borrow-lbl">Olganlar</div>
             <div class="bp-val" id="s-took">—</div>
           </div>
         </div>
@@ -241,25 +241,25 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
     <div class="acts">
       <button class="act" onclick="openAdd('gave')">
         <div class="act-ic v"><i class="ri-send-plane-fill"></i></div>
-        Berdim
+        <span id="act-lend">Berdim</span>
       </button>
       <button class="act" onclick="openAdd('took')">
         <div class="act-ic g"><i class="ri-download-fill"></i></div>
-        Oldim
+        <span id="act-borrow">Oldim</span>
       </button>
       <button class="act" onclick="goLoans()">
         <div class="act-ic b"><i class="ri-list-check-3"></i></div>
-        Ro'yxat
+        <span id="act-list">Ro'yxat</span>
       </button>
       <button class="act" onclick="goHist()">
         <div class="act-ic y"><i class="ri-history-line"></i></div>
-        Tarix
+        <span id="act-hist">Tarix</span>
       </button>
     </div>
 
     <div class="sec-hd">
-      <h3>So'nggi qarzlar</h3>
-      <a onclick="goLoans()">Barchasi <i class="ri-arrow-right-s-line"></i></a>
+      <h3 id="sec-title">So'nggi qarzlar</h3>
+      <a onclick="goLoans()"><span id="sec-all">Barchasi</span> <i class="ri-arrow-right-s-line"></i></a>
     </div>
     <div class="lst" id="home-lst"><div class="spn-w"><div class="spn"></div></div></div>
     <div style="height:8px"></div>
@@ -269,12 +269,12 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
   <div id="s-loans" class="screen">
     <div class="sub-hd">
       <button class="back-btn" onclick="goHome()"><i class="ri-arrow-left-s-line"></i></button>
-      <h2>Qarzlar</h2>
+      <h2 id="loans-title">Qarzlar</h2>
     </div>
     <div class="tabs">
-      <button class="tab on" onclick="filt('all',this)"><i class="ri-apps-2-line"></i>Barchasi</button>
-      <button class="tab" onclick="filt('gave',this)"><i class="ri-arrow-up-circle-line"></i>Berganlar</button>
-      <button class="tab" onclick="filt('took',this)"><i class="ri-arrow-down-circle-line"></i>Olganlar</button>
+      <button class="tab on" id="tab-all" onclick="filt('all',this)"><i class="ri-apps-2-line"></i>Barchasi</button>
+      <button class="tab" id="tab-gave" onclick="filt('gave',this)"><i class="ri-arrow-up-circle-line"></i>Berganlar</button>
+      <button class="tab" id="tab-took" onclick="filt('took',this)"><i class="ri-arrow-down-circle-line"></i>Olganlar</button>
     </div>
     <div class="lst" id="loans-lst"><div class="spn-w"><div class="spn"></div></div></div>
   </div>
@@ -283,7 +283,7 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
   <div id="s-hist" class="screen">
     <div class="sub-hd">
       <button class="back-btn" onclick="goHome()"><i class="ri-arrow-left-s-line"></i></button>
-      <h2>Tarix</h2>
+      <h2 id="hist-title-el">Tarix</h2>
     </div>
     <div class="lst" id="hist-lst" style="margin-top:14px"><div class="spn-w"><div class="spn"></div></div></div>
   </div>
@@ -336,13 +336,13 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
     <i class="ri-home-5-fill"></i>Asosiy
   </button>
   <button class="nb" id="nb-gave" onclick="goLoans('gave')">
-    <i class="ri-arrow-up-circle-line"></i>Berganlar
+    <i class="ri-arrow-up-circle-line"></i><span id="nb-gave-lbl">Berganlar</span>
   </button>
   <button class="nb" id="nb-took" onclick="goLoans('took')">
-    <i class="ri-arrow-down-circle-line"></i>Olganlar
+    <i class="ri-arrow-down-circle-line"></i><span id="nb-took-lbl">Olganlar</span>
   </button>
   <button class="nb" id="nb-hist" onclick="goHist()">
-    <i class="ri-history-line"></i>Tarix
+    <i class="ri-history-line"></i><span id="nb-hist-lbl">Tarix</span>
   </button>
 </nav>
 
@@ -375,13 +375,106 @@ const initData = tg?.initData||'';
 const tgUser = tg?.initDataUnsafe?.user||{};
 let amtStr='', curType='gave', lmap={}, curFilt='all', sel=null;
 
+// ── i18n ──
+const T_ALL = {
+  uz:{
+    greeting:'Xush kelibsiz', balance:'Umumiy balans', lent:'Berganlar', borrowed:'Olganlar',
+    recent:"So'nggi qarzlar", seeAll:'Barchasi', lendAct:'Berdim', borrowAct:'Oldim',
+    listTab:'Ro\'yxat', histTab:'Tarix', loans:'Qarzlar', all:'Barchasi',
+    lendBtn:'Berganlar', borrowBtn:'Olganlar',
+    addLend:'💸 Qarz berdim', addBorrow:'🤝 Qarz oldim',
+    namePh:"Kimga / Kimdan?", save:'Saqlash', saving:'Saqlanmoqda...',
+    noName:'👤 Ism kiriting!', noAmt:'💰 Miqdor kiriting!',
+    savedLend:'💸 Qarz berish qayd etildi!', savedBorrow:'🤝 Qarz olish qayd etildi!',
+    err:'⚠️ Xato yuz berdi', noLoans:"Hozircha qarz yo'q!", noPaid:"To'langan qarzlar yo'q",
+    netErr:"Xato yuz berdi. Qayta urinib ko'ring",
+    today:'Bugun qaytarish kerak!', overdue:"Muddati o'tgan ({n} kun)", soon:'{n} kun qoldi',
+    paid:"✅ To'landi!", paidType:"To'langan",
+    lentType:'Bergan qarz', borrowType:'Olgan qarz',
+    dueLabel:'Muddat: ', addedLabel:"Qo'shilgan: ", markPaid:"To'landi", sum:"so'm",
+  },
+  ru:{
+    greeting:'Добро пожаловать', balance:'Общий баланс', lent:'Выдано', borrowed:'Взято',
+    recent:'Последние долги', seeAll:'Все', lendAct:'Дал', borrowAct:'Взял',
+    listTab:'Список', histTab:'История', loans:'Долги', all:'Все',
+    lendBtn:'Выдано', borrowBtn:'Взято',
+    addLend:'💸 Дал в долг', addBorrow:'🤝 Взял в долг',
+    namePh:'Кому / От кого?', save:'Сохранить', saving:'Сохранение...',
+    noName:'👤 Введите имя!', noAmt:'💰 Введите сумму!',
+    savedLend:'💸 Долг записан!', savedBorrow:'🤝 Долг записан!',
+    err:'⚠️ Произошла ошибка', noLoans:'Пока нет долгов!', noPaid:'Нет оплаченных долгов',
+    netErr:'Ошибка. Попробуйте снова',
+    today:'Срок истекает сегодня!', overdue:'Просрочен ({n} дн.)', soon:'Осталось {n} дн.',
+    paid:'✅ Оплачено!', paidType:'Оплачено',
+    lentType:'Выданный долг', borrowType:'Взятый долг',
+    dueLabel:'Срок: ', addedLabel:'Добавлен: ', markPaid:'Оплачено', sum:'сум',
+  },
+  en:{
+    greeting:'Welcome', balance:'Total balance', lent:'Lent', borrowed:'Borrowed',
+    recent:'Recent loans', seeAll:'See all', lendAct:'Lent', borrowAct:'Borrowed',
+    listTab:'List', histTab:'History', loans:'Loans', all:'All',
+    lendBtn:'Lent', borrowBtn:'Borrowed',
+    addLend:'💸 I lent money', addBorrow:'🤝 I borrowed',
+    namePh:'To / From whom?', save:'Save', saving:'Saving...',
+    noName:'👤 Enter a name!', noAmt:'💰 Enter an amount!',
+    savedLend:'💸 Loan recorded!', savedBorrow:'🤝 Debt recorded!',
+    err:'⚠️ An error occurred', noLoans:'No loans yet!', noPaid:'No paid loans',
+    netErr:'Error. Please try again',
+    today:'Due today!', overdue:'Overdue ({n} days)', soon:'{n} days left',
+    paid:'✅ Paid!', paidType:'Paid',
+    lentType:'Lent loan', borrowType:'Borrowed loan',
+    dueLabel:'Due: ', addedLabel:'Added: ', markPaid:'Mark paid', sum:'sum',
+  },
+};
+let T = T_ALL.uz;
+
+function detectLang(code){
+  if(!code) return 'uz';
+  if(code.startsWith('ru')) return 'ru';
+  if(code.startsWith('uz')) return 'uz';
+  return 'en';
+}
+function applyLang(lang){
+  T = T_ALL[lang] || T_ALL.uz;
+  document.getElementById('hd-greet').textContent  = T.greeting;
+  document.getElementById('bal-lbl').textContent    = T.balance;
+  document.getElementById('lent-lbl').textContent   = T.lent;
+  document.getElementById('borrow-lbl').textContent = T.borrowed;
+  document.getElementById('sec-title').textContent  = T.recent;
+  document.getElementById('sec-all').textContent    = T.seeAll;
+  document.getElementById('act-lend').textContent   = T.lendAct;
+  document.getElementById('act-borrow').textContent = T.borrowAct;
+  document.getElementById('act-list').textContent   = T.listTab;
+  document.getElementById('act-hist').textContent   = T.histTab;
+  document.getElementById('nb-gave-lbl').textContent  = T.lendBtn;
+  document.getElementById('nb-took-lbl').textContent  = T.borrowBtn;
+  document.getElementById('nb-hist-lbl').textContent  = T.histTab;
+  document.getElementById('loans-title').textContent  = T.loans;
+  document.getElementById('hist-title-el').textContent= T.histTab;
+  document.getElementById('tab-all').textContent      = T.all;
+  document.getElementById('tab-gave').textContent     = T.lendBtn;
+  document.getElementById('tab-took').textContent     = T.borrowBtn;
+  document.getElementById('f-p').placeholder          = T.namePh;
+  document.getElementById('sv-btn').innerHTML         = `<i class="ri-check-line"></i> ${T.save}`;
+}
+
 // ── Init ──
-function init(){
+async function init(){
   if(tgUser.first_name){
     const n=tgUser.first_name+(tgUser.last_name?' '+tgUser.last_name:'');
     document.getElementById('uname').textContent=n;
     document.getElementById('av').textContent=tgUser.first_name[0].toUpperCase();
   }
+  // Detect language: bot setting first, fallback to Telegram locale
+  try{
+    const me = await api('GET','/api/me');
+    applyLang(me.language);
+  }catch{
+    applyLang(detectLang(tgUser.language_code));
+  }
+  // Set today as default date placeholder
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('f-dt').value = today;
   loadHome();
 }
 
@@ -421,7 +514,7 @@ async function loadHist(){
   document.getElementById('hist-lst').innerHTML=spin();
   try{
     const loans=await api('GET','/api/history');
-    if(!loans.length){document.getElementById('hist-lst').innerHTML=emptyEl('ri-inbox-2-line','To\'langan qarzlar yo\'q');return;}
+    if(!loans.length){document.getElementById('hist-lst').innerHTML=emptyEl('ri-inbox-2-line',T.noPaid);return;}
     document.getElementById('hist-lst').innerHTML=loans.map(r=>{
       const cls=r.loan_type,icon=cls==='gave'?'ri-arrow-up-circle-fill':'ri-arrow-down-circle-fill';
       return lc(r.id,'paid',icon,r.person_name,

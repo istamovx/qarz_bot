@@ -20,17 +20,178 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 load_dotenv()
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-BOT_TOKEN  = os.getenv("BOT_TOKEN")
+BOT_TOKEN    = os.getenv("BOT_TOKEN")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 WEBHOOK_URL  = os.getenv("WEBHOOK_URL", "")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Translations ───────────────────────────────────────────────────────────────
+
+TEXTS = {
+    "uz": {
+        "choose_lang":   "🌐 Tilni tanlang:",
+        "lang_set":      "✅ Til saqlandi!",
+        "welcome":       "Salom, <b>{name}</b>! 👋\n\n💰 <b>Qarz Bot</b> — qarz oldi-berdi hisobini yuritish uchun.\n\nNima qilmoqchisiz?",
+        "menu":          "Nima qilmoqchisiz?",
+        "ask_person":    "Kimning ismi?",
+        "ask_amount":    "💵 Qancha miqdor? (masalan: <code>500000</code>)",
+        "bad_amount":    "Faqat raqam kiriting, masalan: <code>250000</code>",
+        "ask_due":       "📅 Qaytarish muddati? (masalan: <code>25.05.2026</code>)\nO'tkazish: /skip",
+        "bad_due":       "Noto'g'ri format. (masalan: <code>25.05.2026</code>)\nO'tkazish: /skip",
+        "cancelled":     "Bekor qilindi.",
+        "saved":         "✅ Saqlandi!",
+        "sum":           "so'm",
+        "action_gave":   "berdingiz",
+        "action_took":   "oldingiz",
+        "due_none":      "belgilanmagan",
+        "no_gave":       "Hozircha to'lanmagan qarzdorlar yo'q.",
+        "no_took":       "Hozircha to'lanmagan qarzlarim yo'q.",
+        "no_all":        "Hozircha to'lanmagan qarzlar yo'q.",
+        "title_gave":    "👥 Menga qarzdorlar",
+        "title_took":    "📋 Mening qarzlarim",
+        "title_all":     "📊 Barcha qarzlar",
+        "balance_line":  "💸 Bergan: <code>{g}</code> so'm\n🤝 Olgan: <code>{t}</code> so'm\n📈 Balans: <code>{b}</code> so'm",
+        "no_hist":       "To'langan qarzlar tarixi yo'q.",
+        "hist_title":    "To'langan qarzlar (oxirgi 20)",
+        "mark_paid":     "✅ To'landi: {name} — {amt}",
+        "paid_alert":    "✅ {name} — {amt} so'm to'landi!",
+        "btn_gave":      "💸 Qarz berdim",
+        "btn_took":      "🤝 Qarz oldim",
+        "btn_lgave":     "👥 Menga qarzdorlar",
+        "btn_ltook":     "📋 Mening qarzlarim",
+        "btn_lall":      "📊 Barcha qarzlar",
+        "btn_menu":      "🏠 Menyu",
+        "btn_app":       "📱 Ilovani ochish",
+        "label_gave":    "bergan",
+        "label_took":    "olgan",
+        "r7d":           "7 kun qoldi",
+        "r3d":           "3 kun qoldi",
+        "r1d":           "Ertaga muddat tugaydi!",
+        "r0d":           "Bugun muddat tugaydi!",
+        "rem_title":     "🔔 Qarz eslatmasi!",
+        "overdue":       "⚠️ <b>Muddati o'tgan ({d} kun)</b>",
+        "due_today":     "🔴 <b>Bugun!</b>",
+        "due_soon":      "🟡 {dt} ({d} kun qoldi)",
+        "due_far":       "📅 {dt}",
+    },
+    "ru": {
+        "choose_lang":   "🌐 Выберите язык:",
+        "lang_set":      "✅ Язык сохранён!",
+        "welcome":       "Привет, <b>{name}</b>! 👋\n\n💰 <b>Qarz Bot</b> — учёт долгов.\n\nЧто хотите сделать?",
+        "menu":          "Что хотите сделать?",
+        "ask_person":    "Имя человека?",
+        "ask_amount":    "💵 Сумма? (например: <code>500000</code>)",
+        "bad_amount":    "Только цифры, например: <code>250000</code>",
+        "ask_due":       "📅 Дата возврата? (например: <code>25.05.2026</code>)\nПропустить: /skip",
+        "bad_due":       "Неверный формат. (например: <code>25.05.2026</code>)\nПропустить: /skip",
+        "cancelled":     "Отменено.",
+        "saved":         "✅ Сохранено!",
+        "sum":           "сум",
+        "action_gave":   "выдали",
+        "action_took":   "взяли",
+        "due_none":      "не указан",
+        "no_gave":       "Нет должников.",
+        "no_took":       "Нет долгов.",
+        "no_all":        "Нет долгов.",
+        "title_gave":    "👥 Мои должники",
+        "title_took":    "📋 Мои долги",
+        "title_all":     "📊 Все долги",
+        "balance_line":  "💸 Выдано: <code>{g}</code> сум\n🤝 Взято: <code>{t}</code> сум\n📈 Баланс: <code>{b}</code> сум",
+        "no_hist":       "История пуста.",
+        "hist_title":    "Оплаченные долги (последние 20)",
+        "mark_paid":     "✅ Оплачено: {name} — {amt}",
+        "paid_alert":    "✅ {name} — {amt} сум оплачено!",
+        "btn_gave":      "💸 Дал в долг",
+        "btn_took":      "🤝 Взял в долг",
+        "btn_lgave":     "👥 Мои должники",
+        "btn_ltook":     "📋 Мои долги",
+        "btn_lall":      "📊 Все долги",
+        "btn_menu":      "🏠 Меню",
+        "btn_app":       "📱 Открыть приложение",
+        "label_gave":    "выдал",
+        "label_took":    "взял",
+        "r7d":           "Осталось 7 дней",
+        "r3d":           "Осталось 3 дня",
+        "r1d":           "Срок истекает завтра!",
+        "r0d":           "Срок истекает сегодня!",
+        "rem_title":     "🔔 Напоминание о долге!",
+        "overdue":       "⚠️ <b>Просрочен ({d} дн.)</b>",
+        "due_today":     "🔴 <b>Сегодня!</b>",
+        "due_soon":      "🟡 {dt} (ещё {d} дн.)",
+        "due_far":       "📅 {dt}",
+    },
+    "en": {
+        "choose_lang":   "🌐 Choose language:",
+        "lang_set":      "✅ Language saved!",
+        "welcome":       "Hello, <b>{name}</b>! 👋\n\n💰 <b>Qarz Bot</b> — track your loans.\n\nWhat would you like to do?",
+        "menu":          "What would you like to do?",
+        "ask_person":    "Person's name?",
+        "ask_amount":    "💵 Amount? (e.g. <code>500000</code>)",
+        "bad_amount":    "Numbers only, e.g. <code>250000</code>",
+        "ask_due":       "📅 Due date? (e.g. <code>25.05.2026</code>)\nSkip: /skip",
+        "bad_due":       "Wrong format. (e.g. <code>25.05.2026</code>)\nSkip: /skip",
+        "cancelled":     "Cancelled.",
+        "saved":         "✅ Saved!",
+        "sum":           "sum",
+        "action_gave":   "lent",
+        "action_took":   "borrowed",
+        "due_none":      "not set",
+        "no_gave":       "No outstanding debtors.",
+        "no_took":       "No outstanding debts.",
+        "no_all":        "No outstanding loans.",
+        "title_gave":    "👥 My Debtors",
+        "title_took":    "📋 My Debts",
+        "title_all":     "📊 All Loans",
+        "balance_line":  "💸 Lent: <code>{g}</code> sum\n🤝 Borrowed: <code>{t}</code> sum\n📈 Balance: <code>{b}</code> sum",
+        "no_hist":       "No payment history yet.",
+        "hist_title":    "Paid loans (last 20)",
+        "mark_paid":     "✅ Paid: {name} — {amt}",
+        "paid_alert":    "✅ {name} — {amt} sum paid!",
+        "btn_gave":      "💸 I lent money",
+        "btn_took":      "🤝 I borrowed",
+        "btn_lgave":     "👥 My Debtors",
+        "btn_ltook":     "📋 My Debts",
+        "btn_lall":      "📊 All Loans",
+        "btn_menu":      "🏠 Menu",
+        "btn_app":       "📱 Open App",
+        "label_gave":    "lent",
+        "label_took":    "borrowed",
+        "r7d":           "7 days left",
+        "r3d":           "3 days left",
+        "r1d":           "Due tomorrow!",
+        "r0d":           "Due today!",
+        "rem_title":     "🔔 Loan reminder!",
+        "overdue":       "⚠️ <b>Overdue ({d} days)</b>",
+        "due_today":     "🔴 <b>Today!</b>",
+        "due_soon":      "🟡 {dt} ({d} days left)",
+        "due_far":       "📅 {dt}",
+    },
+}
+
+REMINDER_THRESHOLDS = {7: "r7d", 3: "r3d", 1: "r1d", 0: "r0d"}
+
+# ── Helpers ────────────────────────────────────────────────────────────────────
 
 def h(t): return escape(str(t))
 def fmt(n): return f"{int(n):,}".replace(",", " ")
+
+def get_lang(user_id: int, context=None) -> str:
+    if context and context.user_data.get("lang"):
+        return context.user_data["lang"]
+    rows = supabase.table("user_settings").select("language").eq("user_id", user_id).execute().data
+    lang = rows[0]["language"] if rows else "uz"
+    if context:
+        context.user_data["lang"] = lang
+    return lang
+
+def set_lang(user_id: int, lang: str):
+    supabase.table("user_settings").upsert({"user_id": user_id, "language": lang}).execute()
+
+def tx(lang: str, key: str, **kw) -> str:
+    text = TEXTS.get(lang, TEXTS["uz"]).get(key, key)
+    return text.format(**kw) if kw else text
 
 def parse_date(text):
     for f in ("%d.%m.%Y", "%d/%m/%Y", "%Y-%m-%d", "%d.%m.%y"):
@@ -38,14 +199,15 @@ def parse_date(text):
         except ValueError: pass
     return None
 
-def due_label(s):
+def due_label(s, lang="uz") -> str:
     if not s: return ""
     try:
         diff = (date.fromisoformat(s) - date.today()).days
-        if diff < 0: return f" ⚠️ <b>Muddati o'tgan ({abs(diff)} kun)</b>"
-        if diff == 0: return " 🔴 <b>Bugun!</b>"
-        if diff <= 3: return f" 🟡 {date.fromisoformat(s).strftime('%d.%m.%Y')} ({diff} kun)"
-        return f" 📅 {date.fromisoformat(s).strftime('%d.%m.%Y')}"
+        dt   = date.fromisoformat(s).strftime("%d.%m.%Y")
+        if diff < 0:  return " " + tx(lang, "overdue", d=abs(diff))
+        if diff == 0: return " " + tx(lang, "due_today")
+        if diff <= 3: return " " + tx(lang, "due_soon", dt=dt, d=diff)
+        return " " + tx(lang, "due_far", dt=dt)
     except: return ""
 
 def validate_init_data(init_data: str) -> dict | None:
@@ -62,265 +224,254 @@ def validate_init_data(init_data: str) -> dict | None:
     except: return None
 
 def get_user(req: Request) -> dict:
-    init_data = req.headers.get("X-Init-Data", "")
-    user = validate_init_data(init_data)
-    if not user:
-        raise HTTPException(401, "Unauthorized")
+    user = validate_init_data(req.headers.get("X-Init-Data", ""))
+    if not user: raise HTTPException(401, "Unauthorized")
     return user
 
-# ── Bot handlers ──────────────────────────────────────────────────────────────
+# ── Bot keyboards ──────────────────────────────────────────────────────────────
 
-PERSON_NAME, AMOUNT, DESCRIPTION, DUE_DATE = range(4)
+def lang_keyboard():
+    return InlineKeyboardMarkup([[
+        InlineKeyboardButton("🇺🇿 O'zbek",   callback_data="lang_uz"),
+        InlineKeyboardButton("🇷🇺 Русский",  callback_data="lang_ru"),
+        InlineKeyboardButton("🇬🇧 English",  callback_data="lang_en"),
+    ]])
 
-def main_menu():
+def main_menu(lang: str):
     rows = []
     if WEBHOOK_URL:
-        rows.append([InlineKeyboardButton("📱 Ilovani ochish", web_app=WebAppInfo(url=f"{WEBHOOK_URL}/"))])
+        rows.append([InlineKeyboardButton(tx(lang,"btn_app"), web_app=WebAppInfo(url=f"{WEBHOOK_URL}/"))])
     rows += [
-        [InlineKeyboardButton("💸 Qarz berdim", callback_data="add_gave"),
-         InlineKeyboardButton("🤝 Qarz oldim",  callback_data="add_took")],
-        [InlineKeyboardButton("👥 Menga qarzdorlar", callback_data="list_gave"),
-         InlineKeyboardButton("📋 Mening qarzlarim", callback_data="list_took")],
-        [InlineKeyboardButton("📊 Barcha qarzlar", callback_data="list_all")],
+        [InlineKeyboardButton(tx(lang,"btn_gave"), callback_data="add_gave"),
+         InlineKeyboardButton(tx(lang,"btn_took"), callback_data="add_took")],
+        [InlineKeyboardButton(tx(lang,"btn_lgave"), callback_data="list_gave"),
+         InlineKeyboardButton(tx(lang,"btn_ltook"), callback_data="list_took")],
+        [InlineKeyboardButton(tx(lang,"btn_lall"), callback_data="list_all")],
     ]
     return InlineKeyboardMarkup(rows)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    name = update.effective_user.first_name
-    await update.message.reply_text(
-        f"Salom, <b>{h(name)}</b>! 👋\n\n💰 <b>Qarz Bot</b> — qarz oldi-berdi hisobini yuritish uchun.\n\nNima qilmoqchisiz?",
-        reply_markup=main_menu(), parse_mode="HTML")
+# ── Handlers ───────────────────────────────────────────────────────────────────
 
-async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+PERSON_NAME, AMOUNT, DUE_DATE = range(3)
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    rows = supabase.table("user_settings").select("language").eq("user_id", update.effective_user.id).execute().data
+    if rows:
+        lang = rows[0]["language"]
+        context.user_data["lang"] = lang
+        await update.message.reply_text(
+            tx(lang, "welcome", name=h(update.effective_user.first_name)),
+            reply_markup=main_menu(lang), parse_mode="HTML")
+    else:
+        await update.message.reply_text(
+            "🌐 Tilni tanlang / Choose language / Выберите язык:",
+            reply_markup=lang_keyboard())
+
+async def choose_lang(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    lang = query.data.replace("lang_", "")
+    user_id = update.effective_user.id
+    set_lang(user_id, lang)
+    context.user_data["lang"] = lang
+    await query.edit_message_text(
+        tx(lang, "welcome", name=h(update.effective_user.first_name)),
+        reply_markup=main_menu(lang), parse_mode="HTML")
+
+async def lang_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🌐 Tilni tanlang / Choose language / Выберите язык:",
+        reply_markup=lang_keyboard())
+
+async def menu_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query; await q.answer()
-    await q.edit_message_text("Nima qilmoqchisiz?", reply_markup=main_menu())
+    lang = get_lang(q.from_user.id, context)
+    await q.edit_message_text(tx(lang, "menu"), reply_markup=main_menu(lang))
 
 async def add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query; await q.answer()
+    lang = get_lang(q.from_user.id, context)
     loan_type = "gave" if q.data == "add_gave" else "took"
     context.user_data["loan_type"] = loan_type
-    label = "berdingiz" if loan_type == "gave" else "oldingiz"
-    await q.edit_message_text(f"Qarz <b>{label}</b>.\n\nKimning ismi?", parse_mode="HTML")
+    action = tx(lang, "action_gave") if loan_type == "gave" else tx(lang, "action_took")
+    await q.edit_message_text(f"Qarz <b>{action}</b>.\n\n{tx(lang,'ask_person')}", parse_mode="HTML")
     return PERSON_NAME
 
 async def get_person(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(update.effective_user.id, context)
     context.user_data["person_name"] = update.message.text.strip()
-    await update.message.reply_text("💵 Qancha miqdor? (<code>500000</code>)", parse_mode="HTML")
+    await update.message.reply_text(tx(lang, "ask_amount"), parse_mode="HTML")
     return AMOUNT
 
 async def get_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(update.effective_user.id, context)
     text = update.message.text.strip().replace(",","").replace(" ","")
     if not text.isdigit():
-        await update.message.reply_text("Faqat raqam kiriting!")
+        await update.message.reply_text(tx(lang, "bad_amount"), parse_mode="HTML")
         return AMOUNT
     context.user_data["amount"] = int(text)
-    await update.message.reply_text("Izoh (ixtiyoriy). O'tkazish: /skip")
-    return DESCRIPTION
-
-async def skip_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["description"] = ""
-    await update.message.reply_text("📅 Qaytarish muddati? (<code>25.05.2026</code>)\nO'tkazish: /skip", parse_mode="HTML")
+    await update.message.reply_text(tx(lang, "ask_due"), parse_mode="HTML")
     return DUE_DATE
 
-async def get_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["description"] = update.message.text.strip()
-    await update.message.reply_text("📅 Qaytarish muddati? (<code>25.05.2026</code>)\nO'tkazish: /skip", parse_mode="HTML")
-    return DUE_DATE
-
-async def skip_due_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def skip_due(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["due_date"] = None
     return await save_loan(update, context)
 
-async def get_due_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def get_due(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(update.effective_user.id, context)
     parsed = parse_date(update.message.text)
     if not parsed:
-        await update.message.reply_text("Noto'g'ri format. (<code>25.05.2026</code>)\nO'tkazish: /skip", parse_mode="HTML")
+        await update.message.reply_text(tx(lang, "bad_due"), parse_mode="HTML")
         return DUE_DATE
     context.user_data["due_date"] = parsed.isoformat()
     return await save_loan(update, context)
 
 async def save_loan(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(update.effective_user.id, context)
     user = update.effective_user
     data = {
-        "user_id": user.id,
-        "loan_type": context.user_data["loan_type"],
+        "user_id":     user.id,
+        "loan_type":   context.user_data["loan_type"],
         "person_name": context.user_data["person_name"],
-        "amount": context.user_data["amount"],
-        "description": context.user_data.get("description", ""),
-        "due_date": context.user_data.get("due_date"),
-        "is_paid": False,
+        "amount":      context.user_data["amount"],
+        "description": "",
+        "due_date":    context.user_data.get("due_date"),
+        "is_paid":     False,
     }
     supabase.table("loans").insert(data).execute()
-    emoji  = "💸" if data["loan_type"] == "gave" else "🤝"
-    action = "berdingiz" if data["loan_type"] == "gave" else "oldingiz"
-    due_line = f"📅 Muddat: <b>{data['due_date']}</b>" if data["due_date"] else "📅 Muddat: belgilanmagan"
+    arrow  = "💸" if data["loan_type"] == "gave" else "🤝"
+    action = tx(lang, "action_gave") if data["loan_type"] == "gave" else tx(lang, "action_took")
+    due_line = f"📅 {tx(lang,'label_due') if False else ''}{data['due_date']}" if data["due_date"] else f"📅 {tx(lang,'due_none')}"
     await update.message.reply_text(
-        f"{emoji} <b>Saqlandi!</b>\n\n👤 Kim: <b>{h(data['person_name'])}</b>\n"
-        f"💰 Miqdor: <b>{fmt(data['amount'])} so'm</b>\n"
-        f"Izoh: {h(data['description']) or '—'}\n{due_line}\n\nQarz <b>{action}</b> deb qayd etildi.",
-        reply_markup=main_menu(), parse_mode="HTML")
+        f"{arrow} <b>{tx(lang,'saved')}</b>\n\n"
+        f"👤 <b>{h(data['person_name'])}</b>\n"
+        f"💰 <b>{fmt(data['amount'])} {tx(lang,'sum')}</b>\n"
+        f"{due_line}\n\n"
+        f"Qarz <b>{action}</b> deb qayd etildi.",
+        reply_markup=main_menu(lang), parse_mode="HTML")
     context.user_data.clear()
     return ConversationHandler.END
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(update.effective_user.id, context)
     context.user_data.clear()
-    await update.message.reply_text("Bekor qilindi.", reply_markup=main_menu())
+    await update.message.reply_text(tx(lang, "cancelled"), reply_markup=main_menu(lang))
     return ConversationHandler.END
 
 async def list_loans(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query; await q.answer()
     user_id = update.effective_user.id
+    lang = get_lang(user_id, context)
     ft = q.data
     qb = supabase.table("loans").select("*").eq("user_id", user_id).eq("is_paid", False)
     if ft == "list_gave": qb = qb.eq("loan_type", "gave")
     elif ft == "list_took": qb = qb.eq("loan_type", "took")
     rows = qb.order("created_at", desc=False).execute().data
     if not rows:
-        label = {"list_gave":"qarzdorlar","list_took":"qarzlarim","list_all":"qarzlar"}[ft]
-        await q.edit_message_text(f"Hozircha to'lanmagan {label} yo'q.",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🏠 Menyu", callback_data="menu")]]))
+        no_key = {"list_gave":"no_gave","list_took":"no_took","list_all":"no_all"}[ft]
+        await q.edit_message_text(tx(lang, no_key),
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(tx(lang,"btn_menu"), callback_data="menu")]]))
         return
-    title = {"list_gave":"👥 Menga qarzdorlar","list_took":"📋 Mening qarzlarim","list_all":"📊 Barcha qarzlar"}[ft]
-    lines = [f"<b>{h(title)}</b>\n"]
+    title_key = {"list_gave":"title_gave","list_took":"title_took","list_all":"title_all"}[ft]
+    lines = [f"<b>{tx(lang, title_key)}</b>\n"]
     buttons = []
     for r in rows:
         arrow = "💸" if r["loan_type"] == "gave" else "🤝"
         amt = fmt(r["amount"])
-        desc = f" — {h(r['description'])}" if r["description"] else ""
-        lines.append(f"{arrow} <b>{h(r['person_name'])}</b> | <code>{amt}</code> so'm{desc}{due_label(r.get('due_date'))}")
-        buttons.append([InlineKeyboardButton(f"✅ To'landi: {r['person_name']} — {amt}", callback_data=f"paid_{r['id']}")])
+        lines.append(f"{arrow} <b>{h(r['person_name'])}</b> | <code>{amt}</code> {tx(lang,'sum')}{due_label(r.get('due_date'), lang)}")
+        buttons.append([InlineKeyboardButton(
+            tx(lang, "mark_paid", name=r["person_name"], amt=amt),
+            callback_data=f"paid_{r['id']}")])
     if ft == "list_all":
         tg = sum(r["amount"] for r in rows if r["loan_type"] == "gave")
         tk = sum(r["amount"] for r in rows if r["loan_type"] == "took")
-        lines.append(f"\n💸 Bergan: <code>{fmt(tg)}</code> so'm\n🤝 Olgan: <code>{fmt(tk)}</code> so'm\n📈 Balans: <code>{fmt(tg-tk)}</code> so'm")
-    buttons.append([InlineKeyboardButton("🏠 Menyu", callback_data="menu")])
+        lines.append("\n" + tx(lang, "balance_line", g=fmt(tg), t=fmt(tk), b=fmt(tg-tk)))
+    buttons.append([InlineKeyboardButton(tx(lang,"btn_menu"), callback_data="menu")])
     await q.edit_message_text("\n".join(lines), reply_markup=InlineKeyboardMarkup(buttons), parse_mode="HTML")
 
 async def mark_paid_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
+    lang = get_lang(q.from_user.id, context)
     loan_id = q.data.replace("paid_", "")
     loan = supabase.table("loans").select("*").eq("id", loan_id).single().execute().data
     supabase.table("loans").update({"is_paid": True, "paid_at": datetime.now(timezone.utc).isoformat()}).eq("id", loan_id).execute()
-    await q.answer(f"✅ {loan['person_name']} — {fmt(loan['amount'])} so'm to'landi!", show_alert=True)
+    await q.answer(tx(lang, "paid_alert", name=loan["person_name"], amt=fmt(loan["amount"])), show_alert=True)
     q.data = "list_gave" if loan["loan_type"] == "gave" else "list_took"
     await list_loans(update, context)
 
 async def history_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(update.effective_user.id, context)
     rows = supabase.table("loans").select("*").eq("user_id", update.effective_user.id).eq("is_paid", True).order("paid_at", desc=True).limit(20).execute().data
     if not rows:
-        await update.message.reply_text("To'langan qarzlar tarixi yo'q.")
+        await update.message.reply_text(tx(lang, "no_hist"))
         return
-    lines = ["<b>To'langan qarzlar (oxirgi 20)</b>\n"]
+    lines = [f"<b>{tx(lang,'hist_title')}</b>\n"]
     for r in rows:
         arrow = "💸" if r["loan_type"] == "gave" else "🤝"
-        lines.append(f"{arrow} {h(r['person_name'])} | <code>{fmt(r['amount'])}</code> so'm | {(r.get('paid_at',''))[:10]}")
-    await update.message.reply_text("\n".join(lines), parse_mode="HTML", reply_markup=main_menu())
+        lines.append(f"{arrow} {h(r['person_name'])} | <code>{fmt(r['amount'])}</code> {tx(lang,'sum')} | {(r.get('paid_at',''))[:10]}")
+    await update.message.reply_text("\n".join(lines), parse_mode="HTML", reply_markup=main_menu(lang))
 
-# ── Reminders ─────────────────────────────────────────────────────────────────
-
-# days_left -> (reminder_type, label)
-REMINDER_THRESHOLDS = {
-    7: ("7d", "7 kun qoldi"),
-    3: ("3d", "3 kun qoldi"),
-    1: ("1d", "Ertaga muddat tugaydi!"),
-    0: ("1h", "Bugun muddat tugaydi!"),
-}
-
-async def keep_alive():
-    if not WEBHOOK_URL:
-        return
-    try:
-        import httpx
-        async with httpx.AsyncClient() as client:
-            await client.get(f"{WEBHOOK_URL}/health", timeout=10)
-        logging.info("Keep-alive ping OK")
-    except Exception as e:
-        logging.warning(f"Keep-alive ping failed: {e}")
+# ── Reminders ──────────────────────────────────────────────────────────────────
 
 async def send_reminders():
-    if not tg_app:
-        return
+    if not tg_app: return
     try:
         today = date.today()
-        all_loans = (
-            supabase.table("loans")
-            .select("id,user_id,loan_type,person_name,amount,due_date")
-            .eq("is_paid", False)
-            .execute()
-            .data
-        )
+        all_loans = supabase.table("loans").select("id,user_id,loan_type,person_name,amount,due_date").eq("is_paid", False).execute().data
         loans = [l for l in all_loans if l.get("due_date")]
-
         for loan in loans:
             days_left = (date.fromisoformat(loan["due_date"]) - today).days
-            if days_left not in REMINDER_THRESHOLDS:
+            if days_left not in REMINDER_THRESHOLDS: continue
+            r_type = REMINDER_THRESHOLDS[days_left]
+            if supabase.table("reminders_sent").select("id").eq("loan_id", loan["id"]).eq("reminder_type", r_type).execute().data:
                 continue
-
-            r_type, r_label = REMINDER_THRESHOLDS[days_left]
-
-            already_sent = (
-                supabase.table("reminders_sent")
-                .select("id")
-                .eq("loan_id", loan["id"])
-                .eq("reminder_type", r_type)
-                .execute()
-                .data
-            )
-            if already_sent:
-                continue
-
+            lang = get_lang(loan["user_id"])
             arrow  = "💸" if loan["loan_type"] == "gave" else "🤝"
-            action = "bergan" if loan["loan_type"] == "gave" else "olgan"
+            action = tx(lang, "label_gave") if loan["loan_type"] == "gave" else tx(lang, "label_took")
             emoji  = "🚨" if days_left == 0 else ("⚠️" if days_left == 1 else "🔔")
             due_str = date.fromisoformat(loan["due_date"]).strftime("%d.%m.%Y")
-
             text = (
-                f"{emoji} <b>Qarz eslatmasi!</b>\n\n"
+                f"{emoji} <b>{tx(lang,'rem_title')}</b>\n\n"
                 f"{arrow} <b>{h(loan['person_name'])}</b> ({action})\n"
-                f"💰 <b>{fmt(loan['amount'])} so'm</b>\n"
-                f"📅 Muddat: <b>{due_str}</b>\n\n"
-                f"⏳ <b>{r_label}</b>"
+                f"💰 <b>{fmt(loan['amount'])} {tx(lang,'sum')}</b>\n"
+                f"📅 {due_str}\n\n"
+                f"⏳ <b>{tx(lang, r_type)}</b>"
             )
-
             try:
-                await tg_app.bot.send_message(
-                    chat_id=loan["user_id"],
-                    text=text,
-                    parse_mode="HTML",
-                )
-                supabase.table("reminders_sent").insert({
-                    "loan_id": loan["id"],
-                    "reminder_type": r_type,
-                }).execute()
+                await tg_app.bot.send_message(chat_id=loan["user_id"], text=text, parse_mode="HTML")
+                supabase.table("reminders_sent").insert({"loan_id": loan["id"], "reminder_type": r_type}).execute()
                 logging.info(f"Reminder sent: loan={loan['id']} type={r_type}")
             except Exception as e:
-                logging.warning(f"Reminder send failed user={loan['user_id']}: {e}")
-
+                logging.warning(f"Reminder failed user={loan['user_id']}: {e}")
     except Exception as e:
         logging.error(f"send_reminders error: {e}")
+
+# ── Telegram app ───────────────────────────────────────────────────────────────
 
 def build_tg_app():
     app = Application.builder().token(BOT_TOKEN).updater(None).build()
     conv = ConversationHandler(
         entry_points=[CallbackQueryHandler(add_start, pattern="^add_(gave|took)$")],
         states={
-            PERSON_NAME:  [MessageHandler(filters.TEXT & ~filters.COMMAND, get_person)],
-            AMOUNT:       [MessageHandler(filters.TEXT & ~filters.COMMAND, get_amount)],
-            DESCRIPTION:  [CommandHandler("skip", skip_description), MessageHandler(filters.TEXT & ~filters.COMMAND, get_description)],
-            DUE_DATE:     [CommandHandler("skip", skip_due_date),    MessageHandler(filters.TEXT & ~filters.COMMAND, get_due_date)],
+            PERSON_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_person)],
+            AMOUNT:      [MessageHandler(filters.TEXT & ~filters.COMMAND, get_amount)],
+            DUE_DATE:    [CommandHandler("skip", skip_due),
+                          MessageHandler(filters.TEXT & ~filters.COMMAND, get_due)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
         per_message=False,
     )
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("lang",  lang_cmd))
     app.add_handler(CommandHandler("tarix", history_cmd))
     app.add_handler(conv)
-    app.add_handler(CallbackQueryHandler(menu, pattern="^menu$"))
-    app.add_handler(CallbackQueryHandler(list_loans, pattern="^list_(gave|took|all)$"))
+    app.add_handler(CallbackQueryHandler(choose_lang,  pattern="^lang_(uz|ru|en)$"))
+    app.add_handler(CallbackQueryHandler(menu_cb,      pattern="^menu$"))
+    app.add_handler(CallbackQueryHandler(list_loans,   pattern="^list_(gave|took|all)$"))
     app.add_handler(CallbackQueryHandler(mark_paid_cb, pattern="^paid_"))
     return app
 
-# ── FastAPI ───────────────────────────────────────────────────────────────────
+# ── FastAPI ────────────────────────────────────────────────────────────────────
 
 tg_app = None
 
@@ -338,9 +489,8 @@ async def lifespan(_: FastAPI):
     scheduler = AsyncIOScheduler(timezone="Asia/Tashkent")
     scheduler.add_job(send_reminders, "interval", minutes=30, id="reminders",
                       next_run_time=datetime.now(timezone.utc))
-    scheduler.add_job(keep_alive, "interval", minutes=10, id="keep_alive")
     scheduler.start()
-    logging.info("Scheduler started: reminders (30 min), keep-alive (10 min)")
+    logging.info("Scheduler started")
 
     yield
 
@@ -360,6 +510,16 @@ async def webhook(request: Request):
 @fast_app.get("/", response_class=HTMLResponse)
 async def webapp():
     return HTMLResponse(Path("webapp.html").read_text(encoding="utf-8"))
+
+@fast_app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+@fast_app.get("/api/me")
+async def api_me(request: Request):
+    user = get_user(request)
+    rows = supabase.table("user_settings").select("language").eq("user_id", user["id"]).execute().data
+    return {"language": rows[0]["language"] if rows else "uz"}
 
 @fast_app.get("/api/summary")
 async def api_summary(request: Request):
@@ -385,13 +545,13 @@ async def api_create(request: Request):
     user = get_user(request)
     body = await request.json()
     data = {
-        "user_id": user["id"],
-        "loan_type": body["loan_type"],
+        "user_id":     user["id"],
+        "loan_type":   body["loan_type"],
         "person_name": body["person_name"],
-        "amount": int(body["amount"]),
+        "amount":      int(body["amount"]),
         "description": body.get("description", ""),
-        "due_date": body.get("due_date") or None,
-        "is_paid": False,
+        "due_date":    body.get("due_date") or None,
+        "is_paid":     False,
     }
     return supabase.table("loans").insert(data).execute().data[0]
 
@@ -407,13 +567,8 @@ async def api_history(request: Request):
     user = get_user(request)
     return supabase.table("loans").select("*").eq("user_id", user["id"]).eq("is_paid", True).order("paid_at", desc=True).limit(30).execute().data
 
-@fast_app.get("/health")
-async def health():
-    return {"status": "ok"}
-
 @fast_app.post("/api/reminders/run")
 async def run_reminders_now():
-    """Testlash uchun: reminderni qo'lda ishga tushirish."""
     await send_reminders()
     return {"ok": True}
 
