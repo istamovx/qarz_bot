@@ -218,6 +218,23 @@ body{color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text'
 
 .divider{height:1px;background:var(--border);margin:0 16px 12px}
 body.light .finput[type=date]{color-scheme:light}
+
+/* Settings sheet */
+.lang-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:flex-end;backdrop-filter:blur(8px)}
+.lang-ov.open{display:flex}
+.lang-sheet{background:var(--det-bg);border-radius:28px 28px 0 0;padding:24px 20px max(24px,env(safe-area-inset-bottom));width:100%;animation:slideUp .28s cubic-bezier(.32,1.2,.45,1)}
+.lang-title{font-size:18px;font-weight:800;margin-bottom:20px}
+.lang-opt{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;background:var(--s1);border:1.5px solid var(--border);cursor:pointer;transition:background .15s,border-color .15s;margin-bottom:8px}
+.lang-opt:active{background:var(--s2)}
+.lang-opt.on{border-color:var(--v)}
+.lang-flag{font-size:26px;line-height:1}
+.lang-info{flex:1}
+.lang-name{font-size:15px;font-weight:700}
+.lang-sub{font-size:12px;color:var(--txt3);margin-top:1px}
+.lang-check{font-size:20px;color:var(--v2);opacity:0}
+.lang-opt.on .lang-check{opacity:1}
+.lang-close{width:100%;padding:14px;background:var(--s1);border:1px solid var(--border);border-radius:16px;color:var(--txt3);font-size:15px;font-weight:600;cursor:pointer;margin-top:4px}
+
 </style>
 </head>
 <body>
@@ -238,9 +255,14 @@ body.light .finput[type=date]{color-scheme:light}
             <div class="hd-name" id="uname">...</div>
           </div>
         </div>
-        <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">
-          <i class="ri-moon-line" id="theme-ic"></i>
-        </button>
+        <div style="display:flex;gap:8px">
+          <button class="theme-btn" onclick="openLang()">
+            <i class="ri-translate-2"></i>
+          </button>
+          <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">
+            <i class="ri-moon-line" id="theme-ic"></i>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -392,6 +414,38 @@ body.light .finput[type=date]{color-scheme:light}
   </div>
 </div>
 
+<!-- Language Sheet -->
+<div class="lang-ov" id="lang-ov">
+  <div class="lang-sheet">
+    <div class="lang-title" id="lang-sheet-title">Til tanlang</div>
+    <div class="lang-opt" id="lopt-uz" onclick="setLang('uz')">
+      <span class="lang-flag">🇺🇿</span>
+      <div class="lang-info">
+        <div class="lang-name">O'zbek</div>
+        <div class="lang-sub">O'zbek tili</div>
+      </div>
+      <i class="ri-check-line lang-check"></i>
+    </div>
+    <div class="lang-opt" id="lopt-ru" onclick="setLang('ru')">
+      <span class="lang-flag">🇷🇺</span>
+      <div class="lang-info">
+        <div class="lang-name">Русский</div>
+        <div class="lang-sub">Русский язык</div>
+      </div>
+      <i class="ri-check-line lang-check"></i>
+    </div>
+    <div class="lang-opt" id="lopt-en" onclick="setLang('en')">
+      <span class="lang-flag">🇬🇧</span>
+      <div class="lang-info">
+        <div class="lang-name">English</div>
+        <div class="lang-sub">English language</div>
+      </div>
+      <i class="ri-check-line lang-check"></i>
+    </div>
+    <button class="lang-close" id="lang-close-btn" onclick="closeLang()">✕</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -502,6 +556,10 @@ function applyLang(lang){
   document.getElementById('f-p').placeholder = T.namePh;
   document.getElementById('sv-btn').innerHTML = `<i class="ri-check-line"></i> ${T.save}`;
   document.getElementById('det-paid-txt').textContent = T.markPaid;
+  const langTitles={uz:"Til tanlang",ru:"Выберите язык",en:"Choose language"};
+  document.getElementById('lang-sheet-title').textContent = langTitles[lang]||langTitles.uz;
+  const closeLabels={uz:"Yopish",ru:"Закрыть",en:"Close"};
+  document.getElementById('lang-close-btn').textContent = closeLabels[lang]||closeLabels.uz;
   if(appReady) loadHome();
 }
 
@@ -515,9 +573,11 @@ async function init(){
   initTheme();
   try{
     const me = await api('GET','/api/me');
+    curLang=me.language;
     applyLang(me.language);
   }catch{
-    applyLang(detectLang(tgUser.language_code));
+    curLang=detectLang(tgUser.language_code);
+    applyLang(curLang);
   }
   appReady=true;
   loadHome();
@@ -619,6 +679,28 @@ function showDet(id){
 }
 
 function closeDet(){document.getElementById('det-ov').classList.remove('open');sel=null;}
+
+// ── Language settings ──
+let curLang='uz';
+
+function openLang(){
+  ['uz','ru','en'].forEach(l=>{
+    document.getElementById('lopt-'+l).classList.toggle('on',l===curLang);
+  });
+  document.getElementById('lang-ov').classList.add('open');
+}
+function closeLang(){document.getElementById('lang-ov').classList.remove('open');}
+
+async function setLang(lang){
+  if(lang===curLang){closeLang();return;}
+  try{
+    await api('PATCH','/api/me',{language:lang});
+    curLang=lang;
+    applyLang(lang);
+    closeLang();
+    tg?.HapticFeedback?.notificationOccurred('success');
+  }catch{toast(T.err);}
+}
 
 async function doPaid(){
   if(!sel) return;

@@ -521,6 +521,16 @@ async def api_me(request: Request):
     rows = supabase.table("user_settings").select("language").eq("user_id", user["id"]).execute().data
     return {"language": rows[0]["language"] if rows else "uz"}
 
+@fast_app.patch("/api/me")
+async def api_update_me(request: Request):
+    user = get_user(request)
+    body = await request.json()
+    lang = body.get("language")
+    if lang not in ("uz", "ru", "en"):
+        raise HTTPException(400, "Invalid language")
+    set_lang(user["id"], lang)
+    return {"language": lang}
+
 @fast_app.get("/api/summary")
 async def api_summary(request: Request):
     user = get_user(request)
