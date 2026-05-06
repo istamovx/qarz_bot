@@ -255,7 +255,11 @@ def main_menu(lang: str):
 PERSON_NAME, AMOUNT, DUE_DATE = range(3)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    rows = supabase.table("user_settings").select("language").eq("user_id", update.effective_user.id).execute().data
+    try:
+        rows = supabase.table("user_settings").select("language").eq("user_id", update.effective_user.id).execute().data
+    except Exception as e:
+        logging.error(f"start/user_settings error: {e}")
+        rows = []
     if rows:
         lang = rows[0]["language"]
         context.user_data["lang"] = lang
@@ -483,8 +487,9 @@ async def lifespan(_: FastAPI):
     await tg_app.start()
     if WEBHOOK_URL:
         wh = f"{WEBHOOK_URL}/webhook/{BOT_TOKEN}"
+        await tg_app.bot.delete_webhook(drop_pending_updates=True)
         await tg_app.bot.set_webhook(wh)
-        logging.info(f"Webhook: {wh}")
+        logging.info(f"Webhook set: {wh}")
 
     scheduler = AsyncIOScheduler(timezone="Asia/Tashkent")
     scheduler.add_job(send_reminders, "interval", minutes=30, id="reminders",
@@ -511,40 +516,15 @@ async def webhook(request: Request):
 async def webapp():
     return HTMLResponse(Path("webapp.html").read_text(encoding="utf-8"))
 
-@fast_app.head("/")
-async def webapp_head():
-    return HTMLResponse(content="", status_code=200)
-
 @fast_app.get("/health")
 async def health():
     return {"status": "ok"}
-
-@fast_app.get("/debug/webhook")
-async def debug_webhook():
-    info = await tg_app.bot.get_webhook_info()
-    return {
-        "url": info.url,
-        "pending_update_count": info.pending_update_count,
-        "last_error_message": info.last_error_message,
-        "last_error_date": info.last_error_date.isoformat() if info.last_error_date else None,
-        "max_connections": info.max_connections,
-    }
 
 @fast_app.get("/api/me")
 async def api_me(request: Request):
     user = get_user(request)
     rows = supabase.table("user_settings").select("language").eq("user_id", user["id"]).execute().data
     return {"language": rows[0]["language"] if rows else "uz"}
-
-@fast_app.patch("/api/me")
-async def api_update_me(request: Request):
-    user = get_user(request)
-    body = await request.json()
-    lang = body.get("language")
-    if lang not in ("uz", "ru", "en"):
-        raise HTTPException(400, "Invalid language")
-    set_lang(user["id"], lang)
-    return {"language": lang}
 
 @fast_app.get("/api/summary")
 async def api_summary(request: Request):
