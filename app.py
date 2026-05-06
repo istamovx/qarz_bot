@@ -538,15 +538,6 @@ async def webapp():
 async def health():
     return {"status": "ok"}
 
-@fast_app.get("/reset-webhook")
-async def reset_webhook():
-    if not WEBHOOK_URL:
-        return {"error": "WEBHOOK_URL not set"}
-    wh = f"{WEBHOOK_URL}/webhook/{BOT_TOKEN}"
-    await tg_app.bot.delete_webhook(drop_pending_updates=True)
-    await tg_app.bot.set_webhook(wh)
-    info = await tg_app.bot.get_webhook_info()
-    return {"webhook_url": info.url, "pending": info.pending_update_count, "error": info.last_error_message}
 
 @fast_app.get("/api/me")
 async def api_me(request: Request):
