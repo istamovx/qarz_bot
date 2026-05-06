@@ -507,11 +507,13 @@ async def webhook(request: Request):
     await tg_app.process_update(Update.de_json(data, tg_app.bot))
     return {"ok": True}
 
-@fast_app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
-async def webapp(request: Request):
-    if request.method == "HEAD":
-        return HTMLResponse(content="", status_code=200)
+@fast_app.get("/", response_class=HTMLResponse)
+async def webapp():
     return HTMLResponse(Path("webapp.html").read_text(encoding="utf-8"))
+
+@fast_app.head("/")
+async def webapp_head():
+    return HTMLResponse(content="", status_code=200)
 
 @fast_app.get("/health")
 async def health():
