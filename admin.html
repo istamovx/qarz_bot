@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qarz Bot — Admin</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d0d1a;--card:#161625;--border:#1e1e35;
+  --v:#7C5CFC;--v2:#A78BFA;--grad:linear-gradient(135deg,#5E35B1,#7C5CFC,#A78BFA);
+  --green:#00C9A7;--red:#FF6B6B;--yellow:#FFD93D;
+  --txt:#F0EFFF;--txt2:#8888AA;--txt3:#5E5E80;
+}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+
+/* Login */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 36px;width:100%;max-width:380px}
+.login-logo{width:56px;height:56px;border-radius:16px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 20px}
+.login-title{font-size:22px;font-weight:800;text-align:center;margin-bottom:6px}
+.login-sub{font-size:14px;color:var(--txt2);text-align:center;margin-bottom:28px}
+.inp{background:#0d0d1a;border:1.5px solid var(--border);border-radius:14px;padding:13px 16px;color:var(--txt);font-size:15px;width:100%;outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(--v)}
+.inp::placeholder{color:var(--txt3)}
+.btn{width:100%;padding:14px;background:var(--grad);border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .2s}
+.btn:hover{opacity:.9}
+.btn:disabled{opacity:.5;cursor:default}
+.err{color:var(--red);font-size:13px;text-align:center;margin-top:10px;min-height:18px}
+
+/* Main */
+.main{display:none;flex-direction:column;min-height:100vh}
+header{background:var(--card);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.site-title{font-size:17px;font-weight:800;flex:1}
+.logout-btn{background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.2);border-radius:10px;color:var(--red);padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer}
+.content{padding:24px;max-width:1200px;margin:0 auto;width:100%}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px}
+.stat-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:20px}
+.stat-ic.v{background:rgba(124,92,252,.15)} .stat-ic.v i{color:var(--v2)}
+.stat-ic.g{background:rgba(0,201,167,.12)} .stat-ic.g i{color:var(--green)}
+.stat-ic.r{background:rgba(255,107,107,.12)} .stat-ic.r i{color:var(--red)}
+.stat-ic.y{background:rgba(255,217,61,.10)} .stat-ic.y i{color:var(--yellow)}
+.stat-ic.b{background:rgba(94,129,244,.12)} .stat-ic.b i{color:#5E81F4}
+.stat-val{font-size:26px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px}
+.stat-lbl{font-size:13px;color:var(--txt2)}
+
+/* Tabs */
+.tabs{display:flex;gap:8px;margin-bottom:16px}
+.tab{padding:9px 20px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--txt2);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.tab i{font-size:15px}
+.tab.on{background:var(--v);border-color:var(--v);color:#fff}
+
+/* Table */
+.tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden}
+.tbl-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.tbl-head h3{font-size:15px;font-weight:700}
+.tbl-count{font-size:13px;color:var(--txt2);background:rgba(255,255,255,.05);padding:4px 10px;border-radius:20px}
+table{width:100%;border-collapse:collapse}
+th{padding:11px 16px;text-align:left;font-size:12px;font-weight:600;color:var(--txt2);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge.gave{background:rgba(124,92,252,.15);color:var(--v2)}
+.badge.took{background:rgba(0,201,167,.12);color:var(--green)}
+.badge.paid{background:rgba(255,255,255,.06);color:var(--txt2)}
+.badge.active{background:rgba(255,217,61,.10);color:var(--yellow)}
+.uid{font-family:monospace;font-size:12px;color:var(--txt2);cursor:pointer}
+.uid:hover{color:var(--v2)}
+.amt-pos{color:var(--v2);font-weight:700}
+.amt-neg{color:var(--green);font-weight:700}
+
+/* Spinner */
+.spn-w{display:flex;justify-content:center;padding:48px}
+.spn{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--v2);border-radius:50%;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.empty-msg{text-align:center;padding:48px;color:var(--txt2);font-size:14px}
+
+/* Search */
+.search-row{display:flex;gap:10px;margin-bottom:14px}
+.search{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:9px 14px 9px 38px;color:var(--txt);font-size:14px;outline:none;transition:border-color .2s;position:relative}
+.search:focus{border-color:var(--v)}
+.search-wrap{position:relative;flex:1}
+.search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--txt2);font-size:16px;pointer-events:none}
+
+@media(max-width:640px){
+  .content{padding:14px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  th,td{padding:10px 10px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">💰</div>
+    <div class="login-title">Qarz Bot Admin</div>
+    <div class="login-sub">Boshqaruv paneli</div>
+    <input class="inp" id="pwd" type="password" placeholder="Parol" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn" id="login-btn" onclick="doLogin()">Kirish</button>
+    <div class="err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main" id="main">
+  <header>
+    <div class="logo">💰</div>
+    <div class="site-title">Qarz Bot Admin</div>
+    <button class="logout-btn" onclick="logout()"><i class="ri-logout-box-line"></i> Chiqish</button>
+  </header>
+  <div class="content">
+
+    <!-- Stats -->
+    <div class="stats" id="stats-row">
+      <div class="stat"><div class="stat-ic v"><i class="ri-user-3-line"></i></div><div class="stat-val" id="st-users">—</div><div class="stat-lbl">Foydalanuvchilar</div></div>
+      <div class="stat"><div class="stat-ic y"><i class="ri-bill-line"></i></div><div class="stat-val" id="st-active">—</div><div class="stat-lbl">Faol qarzlar</div></div>
+      <div class="stat"><div class="stat-ic g"><i class="ri-check-double-line"></i></div><div class="stat-val" id="st-paid">—</div><div class="stat-lbl">To'langan</div></div>
+      <div class="stat"><div class="stat-ic v"><i class="ri-arrow-up-circle-line"></i></div><div class="stat-val" id="st-gave">—</div><div class="stat-lbl">Jami bergan (faol)</div></div>
+      <div class="stat"><div class="stat-ic g"><i class="ri-arrow-down-circle-line"></i></div><div class="stat-val" id="st-took">—</div><div class="stat-lbl">Jami olgan (faol)</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab on" id="tab-users" onclick="showTab('users')"><i class="ri-team-line"></i> Foydalanuvchilar</button>
+      <button class="tab" id="tab-loans" onclick="showTab('loans')"><i class="ri-list-check-3"></i> Barcha qarzlar</button>
+    </div>
+
+    <!-- Users panel -->
+    <div id="panel-users">
+      <div class="search-row">
+        <div class="search-wrap">
+          <i class="ri-search-line"></i>
+          <input class="search" id="user-search" type="text" placeholder="ID yoki til bo'yicha qidirish..." oninput="filterUsers()">
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-head"><h3>Klient baza</h3><span class="tbl-count" id="user-count">0 ta</span></div>
+        <div id="users-body"><div class="spn-w"><div class="spn"></div></div></div>
+      </div>
+    </div>
+
+    <!-- Loans panel -->
+    <div id="panel-loans" style="display:none">
+      <div class="search-row">
+        <div class="search-wrap">
+          <i class="ri-search-line"></i>
+          <input class="search" id="loan-search" type="text" placeholder="Ism yoki user ID bo'yicha..." oninput="filterLoans()">
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-head"><h3>Barcha qarzlar</h3><span class="tbl-count" id="loan-count">0 ta</span></div>
+        <div id="loans-body"><div class="spn-w"><div class="spn"></div></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let token = sessionStorage.getItem('admin_token') || '';
+let allUsers = [], allLoans = [];
+
+async function doLogin(){
+  const pwd = document.getElementById('pwd').value;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-err');
+  if(!pwd) return;
+  btn.disabled = true; btn.textContent = 'Kirish...';
+  err.textContent = '';
+  try{
+    const r = await fetch('/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
+    if(!r.ok){ err.textContent = '❌ Parol noto\'g\'ri'; btn.disabled=false; btn.textContent='Kirish'; return; }
+    const d = await r.json();
+    token = d.token;
+    sessionStorage.setItem('admin_token', token);
+    showMain();
+  }catch{
+    err.textContent = '⚠️ Xato yuz berdi';
+    btn.disabled=false; btn.textContent='Kirish';
+  }
+}
+
+function logout(){
+  sessionStorage.removeItem('admin_token');
+  token = '';
+  document.getElementById('main').style.display = 'none';
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('pwd').value = '';
+}
+
+async function api(path){
+  const r = await fetch(path, {headers:{'X-Admin-Token': token}});
+  if(r.status===401){ logout(); throw new Error('unauth'); }
+  return r.json();
+}
+
+function fmt(n){ return Math.round(n||0).toLocaleString('ru-RU'); }
+function fmtDate(s){ return s ? s.slice(0,10) : '—'; }
+function langFlag(l){ return l==='uz'?'🇺🇿':l==='ru'?'🇷🇺':l==='en'?'🇬🇧':'—'; }
+
+async function showMain(){
+  document.getElementById('login-wrap').style.display = 'none';
+  document.getElementById('main').style.display = 'flex';
+  loadStats();
+  loadUsers();
+  loadLoans();
+}
+
+async function loadStats(){
+  try{
+    const s = await api('/admin/api/stats');
+    document.getElementById('st-users').textContent  = s.total_users;
+    document.getElementById('st-active').textContent = s.active_loans;
+    document.getElementById('st-paid').textContent   = s.paid_loans;
+    document.getElementById('st-gave').textContent   = fmt(s.total_gave) + ' so\'m';
+    document.getElementById('st-took').textContent   = fmt(s.total_took) + ' so\'m';
+  }catch{}
+}
+
+async function loadUsers(){
+  try{
+    allUsers = await api('/admin/api/users');
+    renderUsers(allUsers);
+  }catch{ document.getElementById('users-body').innerHTML = '<div class="empty-msg">Ma\'lumot yuklanmadi</div>'; }
+}
+
+function renderUsers(data){
+  document.getElementById('user-count').textContent = data.length + ' ta';
+  if(!data.length){ document.getElementById('users-body').innerHTML = '<div class="empty-msg">Foydalanuvchilar yo\'q</div>'; return; }
+  document.getElementById('users-body').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>#</th><th>Telegram ID</th><th>Til</th>
+        <th>Faol qarz</th><th>To'langan</th>
+        <th>Bergan (faol)</th><th>Olgan (faol)</th>
+      </tr></thead>
+      <tbody>${data.map((u,i)=>`<tr>
+        <td style="color:var(--txt2)">${i+1}</td>
+        <td><span class="uid" onclick="copyUID(${u.user_id})" title="Nusxa olish">${u.user_id}</span></td>
+        <td>${langFlag(u.language)} ${u.language}</td>
+        <td><span class="badge ${u.active_loans>0?'active':'paid'}">${u.active_loans}</span></td>
+        <td><span class="badge paid">${u.paid_loans}</span></td>
+        <td class="amt-pos">${u.total_gave>0?fmt(u.total_gave)+' so\'m':'—'}</td>
+        <td class="amt-neg">${u.total_took>0?fmt(u.total_took)+' so\'m':'—'}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+function filterUsers(){
+  const q = document.getElementById('user-search').value.toLowerCase();
+  renderUsers(q ? allUsers.filter(u=> String(u.user_id).includes(q) || u.language.includes(q)) : allUsers);
+}
+
+async function loadLoans(){
+  try{
+    allLoans = await api('/admin/api/loans');
+    renderLoans(allLoans);
+  }catch{ document.getElementById('loans-body').innerHTML = '<div class="empty-msg">Ma\'lumot yuklanmadi</div>'; }
+}
+
+function renderLoans(data){
+  document.getElementById('loan-count').textContent = data.length + ' ta';
+  if(!data.length){ document.getElementById('loans-body').innerHTML = '<div class="empty-msg">Qarzlar yo\'q</div>'; return; }
+  document.getElementById('loans-body').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>#</th><th>Sana</th><th>User ID</th><th>Ism</th>
+        <th>Miqdor</th><th>Turi</th><th>Holat</th><th>Muddat</th>
+      </tr></thead>
+      <tbody>${data.map((l,i)=>`<tr>
+        <td style="color:var(--txt2)">${i+1}</td>
+        <td style="color:var(--txt2)">${fmtDate(l.created_at)}</td>
+        <td><span class="uid" onclick="copyUID(${l.user_id})" title="Nusxa olish">${l.user_id}</span></td>
+        <td style="font-weight:600">${esc(l.person_name)}</td>
+        <td style="font-weight:700">${fmt(l.amount)} so'm</td>
+        <td><span class="badge ${l.loan_type}">${l.loan_type==='gave'?'💸 Bergan':'🤝 Olgan'}</span></td>
+        <td><span class="badge ${l.is_paid?'paid':'active'}">${l.is_paid?"✅ To'langan":"⏳ Faol"}</span></td>
+        <td style="color:var(--txt2)">${fmtDate(l.due_date)}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+function filterLoans(){
+  const q = document.getElementById('loan-search').value.toLowerCase();
+  renderLoans(q ? allLoans.filter(l=> l.person_name.toLowerCase().includes(q) || String(l.user_id).includes(q)) : allLoans);
+}
+
+function showTab(t){
+  document.getElementById('panel-users').style.display = t==='users'?'block':'none';
+  document.getElementById('panel-loans').style.display = t==='loans'?'block':'none';
+  document.getElementById('tab-users').classList.toggle('on', t==='users');
+  document.getElementById('tab-loans').classList.toggle('on', t==='loans');
+}
+
+function copyUID(id){
+  navigator.clipboard?.writeText(String(id));
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Auto-login if token exists
+if(token){ showMain(); } else { document.getElementById('login-wrap').style.display='flex'; }
+</script>
+</body>
+</html>

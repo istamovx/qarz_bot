@@ -1,4 +1,4 @@
-import os, hmac, hashlib, json, logging
+import os, hmac, hashlib, json, logging, secrets
 from html import escape
 from datetime import date, datetime, timezone
 from urllib.parse import parse_qs, unquote
@@ -20,10 +20,13 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 load_dotenv()
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-BOT_TOKEN    = os.getenv("BOT_TOKEN")
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-WEBHOOK_URL  = os.getenv("WEBHOOK_URL", "")
+BOT_TOKEN      = os.getenv("BOT_TOKEN")
+SUPABASE_URL   = os.getenv("SUPABASE_URL")
+SUPABASE_KEY   = os.getenv("SUPABASE_KEY")
+WEBHOOK_URL    = os.getenv("WEBHOOK_URL", "")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
+
+_admin_tokens: set[str] = set()
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -605,6 +608,70 @@ async def api_history(request: Request):
 async def run_reminders_now():
     await send_reminders()
     return {"ok": True}
+
+# ── Admin ──────────────────────────────────────────────────────────────────────
+
+def _check_admin(request: Request):
+    if request.headers.get("X-Admin-Token", "") not in _admin_tokens:
+        raise HTTPException(401, "Unauthorized")
+
+@fast_app.get("/admin", response_class=HTMLResponse)
+async def admin_page():
+    return HTMLResponse(Path("admin.html").read_text(encoding="utf-8"))
+
+@fast_app.post("/admin/login")
+async def admin_login(request: Request):
+    body = await request.json()
+    if not ADMIN_PASSWORD or body.get("password") != ADMIN_PASSWORD:
+        raise HTTPException(401, "Wrong password")
+    token = secrets.token_hex(32)
+    _admin_tokens.add(token)
+    return {"token": token}
+
+@fast_app.get("/admin/api/stats")
+async def admin_stats(request: Request):
+    _check_admin(request)
+    loans = supabase.table("loans").select("user_id,loan_type,amount,is_paid").execute().data
+    settings = supabase.table("user_settings").select("user_id").execute().data
+    all_uids = set(l["user_id"] for l in loans) | set(u["user_id"] for u in settings)
+    active = [l for l in loans if not l["is_paid"]]
+    return {
+        "total_users":   len(all_uids),
+        "active_loans":  len(active),
+        "paid_loans":    sum(1 for l in loans if l["is_paid"]),
+        "total_loans":   len(loans),
+        "total_gave":    sum(l["amount"] for l in active if l["loan_type"] == "gave"),
+        "total_took":    sum(l["amount"] for l in active if l["loan_type"] == "took"),
+    }
+
+@fast_app.get("/admin/api/users")
+async def admin_users(request: Request):
+    _check_admin(request)
+    loans = supabase.table("loans").select("user_id,loan_type,amount,is_paid").execute().data
+    settings = {u["user_id"]: u["language"] for u in
+                supabase.table("user_settings").select("user_id,language").execute().data}
+    users: dict = {}
+    for l in loans:
+        uid = l["user_id"]
+        if uid not in users:
+            users[uid] = {"user_id": uid, "language": settings.get(uid, "—"),
+                          "active_loans": 0, "paid_loans": 0, "total_gave": 0, "total_took": 0}
+        if l["is_paid"]:
+            users[uid]["paid_loans"] += 1
+        else:
+            users[uid]["active_loans"] += 1
+            if l["loan_type"] == "gave": users[uid]["total_gave"] += float(l["amount"])
+            else:                        users[uid]["total_took"] += float(l["amount"])
+    for uid, lang in settings.items():
+        if uid not in users:
+            users[uid] = {"user_id": uid, "language": lang,
+                          "active_loans": 0, "paid_loans": 0, "total_gave": 0, "total_took": 0}
+    return sorted(users.values(), key=lambda u: u["active_loans"], reverse=True)
+
+@fast_app.get("/admin/api/loans")
+async def admin_loans_all(request: Request):
+    _check_admin(request)
+    return supabase.table("loans").select("*").order("created_at", desc=True).execute().data
 
 if __name__ == "__main__":
     import uvicorn
