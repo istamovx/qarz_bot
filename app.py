@@ -216,7 +216,7 @@ def validate_init_data(init_data: str) -> dict | None:
         hash_val = vals.pop("hash", None)
         if not hash_val: return None
         check_str = "\n".join(f"{k}={v}" for k, v in sorted(vals.items()))
-        secret = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
+        secret = hmac.new(BOT_TOKEN.encode(), b"WebAppData", hashlib.sha256).digest()
         if not hmac.compare_digest(
             hmac.new(secret, check_str.encode(), hashlib.sha256).hexdigest(), hash_val
         ): return None
