@@ -382,11 +382,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(tx(lang, "cancelled"), reply_markup=main_menu(lang))
     return ConversationHandler.END
 
-async def list_loans(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    q = update.callback_query; await q.answer()
-    user_id = update.effective_user.id
-    lang = get_lang(user_id, context)
-    ft = q.data
+async def _show_list(q, lang: str, ft: str, user_id: int):
     qb = supabase.table("loans").select("*").eq("user_id", user_id).eq("is_paid", False)
     if ft == "list_gave": qb = qb.eq("loan_type", "gave")
     elif ft == "list_took": qb = qb.eq("loan_type", "took")
@@ -413,15 +409,25 @@ async def list_loans(update: Update, context: ContextTypes.DEFAULT_TYPE):
     buttons.append([InlineKeyboardButton(tx(lang,"btn_menu"), callback_data="menu")])
     await q.edit_message_text("\n".join(lines), reply_markup=InlineKeyboardMarkup(buttons), parse_mode="HTML")
 
+async def list_loans(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    lang = get_lang(q.from_user.id, context)
+    await _show_list(q, lang, q.data, update.effective_user.id)
+
 async def mark_paid_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
+    await q.answer()  # must be first — prevents ghost button
     lang = get_lang(q.from_user.id, context)
     loan_id = q.data.replace("paid_", "")
-    loan = supabase.table("loans").select("*").eq("id", loan_id).single().execute().data
-    supabase.table("loans").update({"is_paid": True, "paid_at": datetime.now(timezone.utc).isoformat()}).eq("id", loan_id).execute()
-    await q.answer(tx(lang, "paid_alert", name=loan["person_name"], amt=fmt(loan["amount"])), show_alert=True)
-    q.data = "list_gave" if loan["loan_type"] == "gave" else "list_took"
-    await list_loans(update, context)
+    try:
+        loan = supabase.table("loans").select("*").eq("id", loan_id).single().execute().data
+        supabase.table("loans").update({"is_paid": True, "paid_at": datetime.now(timezone.utc).isoformat()}).eq("id", loan_id).execute()
+    except Exception as e:
+        logging.error(f"mark_paid_cb DB error: {e}")
+        return
+    ft = "list_gave" if loan["loan_type"] == "gave" else "list_took"
+    await _show_list(q, lang, ft, q.from_user.id)
 
 async def history_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(update.effective_user.id, context)
@@ -521,7 +527,6 @@ async def lifespan(_: FastAPI):
     yield
 
     scheduler.shutdown(wait=False)
-    await tg_app.bot.delete_webhook()
     await tg_app.stop()
     await tg_app.shutdown()
 
